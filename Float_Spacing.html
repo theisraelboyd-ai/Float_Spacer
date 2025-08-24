@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Buoyancy & Float Planner</title>
+<style>
+  :root{--bg:#0f1417;--panel:#121b20;--panel-2:#0e171c;--text:#e6eef0;--muted:#b6c6cb;
+    --teal:#10b5c4;--accent:#78f0ff;--danger:#ff4d4d;--ok:#86ff8f;}
+  body{background:#0f1417;color:var(--text);font:14px/1.5 system-ui;margin:0;padding:18px;
+    display:flex;flex-direction:column;gap:14px;}
+  .title{text-align:center;font-weight:800;font-size:22px;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--accent),var(--teal));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .wrap{display:flex;gap:14px;flex:1}
+  @media(max-width:960px){.wrap{flex-direction:column}}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid rgba(120,240,255,.18);border-radius:14px;padding:12px;}
+  #canvasWrap{flex:1;min-height:380px;border-radius:14px;
+    background:linear-gradient(180deg,#0a1216,#0c151a);}
+  canvas{width:100%;height:100%}
+  .sidebar,.math{width:360px;max-width:46vw}
+  @media(max-width:960px){.sidebar,.math{width:100%}}
+  h2{margin:0 0 10px;font-size:15px;font-weight:800;text-transform:uppercase;color:var(--accent)}
+  label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--muted)}
+  input{background:#0b1a20;border:1px solid rgba(120,240,255,.25);color:var(--text);
+    border-radius:8px;padding:6px 8px;width:140px}
+  .btn{background:linear-gradient(180deg,var(--teal),#0aa1b0);color:#04262b;
+    border:1px solid rgba(120,240,255,.35);border-radius:8px;padding:6px 10px;font-weight:700;
+    cursor:pointer;margin-top:6px}
+  .btn:hover{filter:brightness(1.1)}
+  table{width:100%;font-size:13px;margin-top:10px}
+  td{padding:3px 4px}
+  .status-ok{color:var(--ok)}.status-bad{color:var(--danger)}
+  #savedCards{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+  .card{border:1px solid rgba(120,240,255,.2);border-radius:10px;padding:10px;
+    background:linear-gradient(180deg,#0c1a20,#0b1519);}
+  .card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .card-title{font-weight:800;color:var(--accent)}
+  .card-grid{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px;}
+  .explain{margin-top:16px;padding:10px;border-radius:10px;background:#0b1519;
+    color:var(--muted);font-size:13px;line-height:1.5;}
+  #sf_warning{color:#ff4d4d;font-size:12px;display:none;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="title">Buoyancy & Float Planner</div>
+<div class="wrap">
+  <!-- Graph -->
+  <div id="canvasWrap" class="panel"><canvas id="c" width="900" height="500"></canvas></div>
+
+  <!-- Controls -->
+  <div class="sidebar panel">
+    <h2>Cable Parameters</h2>
+    <label>Cable W (kg/m)<input id="W" type="number" value="34"></label>
+    <label>Buoy usable B (kg)<input id="B" type="number" value="200"></label>
+    <label>Spacing (m)<input id="X" type="number" value="5" step="0.1"></label>
+    <label>Safety Factor SF<input id="SF" type="number" value="1.2" step="0.05" min="0.5"></label>
+    <label>Water Depth (m)<input id="depth" type="number" value="10"></label>
+    <button class="btn" onclick="resetDefaults()">Reset Graph</button>
+    <div id="sf_warning">⚠️ SF below 1 means under-float condition</div>
+
+    <!-- Explanation -->
+    <div class="explain">
+      <b>How it Works</b><br>
+      • <b>Coverage</b>: If one buoy is lost, neighbours take the load – correct spacing prevents chain failures.<br>
+      • <b>Cable Weight in Water</b>: Effective submerged mass per metre.<br>
+      • <b>Buoyancy</b>: Usable lift of each float (realistic working value).<br>
+      • <b>Spacing</b>: Centre-to-centre distance between floats – sets how much cable each float supports.<br>
+      • <b>Safety Factor</b>: SF ≥ 1 means safety margin. SF < 1 (down to 0.5) means deliberate under-float, cable will ride lower in the water.<br>
+    </div>
+  </div>
+
+  <!-- Planner -->
+  <div class="math panel">
+    <h2>Float Planner</h2>
+    <label>Total Cable Length (m)<input id="clen" type="number" value="100"></label>
+    <label>Floatation Description<input id="fdesc" type="text" placeholder="e.g. Doowin Single"></label>
+    <label>Float Length (m)<input id="flen" type="number" value="0.8" step="0.01"></label>
+    <table>
+      <tr><td>Centre-to-centre spacing</td><td id="pt_spacing"></td></tr>
+      <tr><td>Edge-to-edge spacing</td><td id="pt_edge"></td></tr>
+      <tr><td>Required floats</td><td id="pt_floats"></td></tr>
+      <tr><td>Total coverage length</td><td id="pt_cover"></td></tr>
+      <tr><td>Span load check</td><td id="pt_status"></td></tr>
+    </table>
+    <div class="row">
+      <button class="btn" onclick="saveResult()">Save Result</button>
+      <button class="btn" onclick="clearCurrent()">Clear Current</button>
+    </div>
+    <div id="savedCards"></div>
+    <button class="btn" style="margin-top:6px" onclick="clearAll()">Clear All Saved</button>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const W=document.getElementById('W'),B=document.getElementById('B'),X=document.getElementById('X'),
+      SF=document.getElementById('SF'),depth=document.getElementById('depth'),
+      clenEl=document.getElementById('clen'),fdesc=document.getElementById('fdesc'),
+      flen=document.getElementById('flen');
+let floats=[],L=50; // graph window in m
+const M={left:70,right:50,top:20,bottom:30};
+const R=10; // float radius px
+const maxDraw=80; // visual cap
+let savedResults=[];
+
+// === Graph Floats ===
+function resetFloats(){
+  floats=[];
+  const spacing=+X.value;
+  const n=Math.floor(L/spacing)+1;
+  for(let i=0;i<n;i++){floats.push({x:i*spacing,removed:false,overloaded:false});}
+}
+function resetDefaults(){W.value=34;B.value=200;X.value=5;SF.value=1.2;depth.value=10;
+  clenEl.value=100;fdesc.value="";flen.value=0.8;
+  resetFloats();updatePlanner();draw();}
+function draw(){
+  const Wv=+W.value,Bv=+B.value,SFv=+SF.value,depthV=+depth.value;
+  const innerW=canvas.width-M.left-M.right,innerH=canvas.height-M.top-M.bottom;
+  const midY=M.top+innerH/2,scaleX=innerW/L,scaleY=(innerH/2)/depthV;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // waterline
+  ctx.strokeStyle="rgba(120,240,255,0.65)";ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(M.left,midY);ctx.lineTo(M.left+innerW,midY);ctx.stroke();ctx.setLineDash([]);
+
+  // seabed
+  const seabedY=midY+depthV*scaleY;ctx.strokeStyle="#555";
+  ctx.beginPath();ctx.moveTo(M.left,seabedY);ctx.lineTo(M.left+innerW,seabedY);ctx.stroke();
+
+  // depth grid
+  ctx.strokeStyle="rgba(120,240,255,0.15)";
+  for(let d=2;d<=depthV;d+=2){
+    ctx.beginPath();ctx.moveTo(M.left,midY+d*scaleY);ctx.lineTo(M.left+innerW,midY+d*scaleY);ctx.stroke();
+  }
+
+  // depth labels
+  ctx.fillStyle="#78f0ff";ctx.font="12px sans-serif";ctx.textAlign="right";
+  for(let d=0;d<=depthV;d+=2){ctx.fillText(`${d} m`,canvas.width-8,midY+d*scaleY+4);}
+
+  // cable line
+  ctx.lineWidth=2;ctx.strokeStyle="#10b5c4";ctx.beginPath();
+  let prev=null;const drawStep=Math.ceil(floats.length/maxDraw);
+  floats.forEach((f,idx)=>{
+    if(idx%drawStep!==0 && idx!==floats.length-1)return;
+    if(f.removed)return;
+    const x=M.left+f.x*scaleX,y=midY;
+    if(prev===null){ctx.moveTo(x,y);prev={x,y,xi:f.x};return;}
+    const span=f.x-prev.xi,load=SFv*Wv*span,frac=load/Bv;let sag=0;
+    if(frac>1){let sagM=((load-Bv)/Bv)*depthV;sagM=Math.min(sagM,depthV);sag=sagM*scaleY;f.overloaded=true;}
+    const cx=(prev.x+x)/2,cy=midY+sag;ctx.quadraticCurveTo(cx,cy,x,y);
+    prev={x,y,xi:f.x};
+  });ctx.stroke();
+
+  // floats
+  ctx.lineWidth=1;
+  floats.forEach((f,idx)=>{
+    if(idx%drawStep!==0 && idx!==floats.length-1)return;
+    const x=M.left+f.x*scaleX,y=midY;
+    ctx.beginPath();ctx.arc(x,y,R,0,2*Math.PI);
+    if(idx===0||idx===floats.length-1)ctx.fillStyle="#555";
+    else if(f.removed)ctx.fillStyle="#777";
+    else if(f.overloaded)ctx.fillStyle="#ff4d4d";
+    else ctx.fillStyle="yellow";ctx.fill();ctx.stroke();
+  });
+}
+canvas.addEventListener('pointerdown',e=>{
+  const rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+  const mx=(e.clientX-rect.left)*sx,my=(e.clientY-rect.top)*sy;
+  const innerW=canvas.width-M.left-M.right,midY=M.top+(canvas.height-M.top-M.bottom)/2,scaleX=innerW/L,Rhit=14;
+  floats.forEach((f,idx)=>{const fx=M.left+f.x*scaleX,fy=midY;
+    if(Math.hypot(mx-fx,my-fy)<Rhit){f.removed=!f.removed;draw();}});
+});
+
+// === Planner ===
+function updatePlanner(){
+  const Xv=+X.value,clen=+clenEl.value,Wv=+W.value,Bv=+B.value,SFv=+SF.value,flenV=+flen.value;
+
+  // Safety Factor warning
+  if(SFv < 1){
+    document.getElementById('sf_warning').style.display = "block";
+  } else {
+    document.getElementById('sf_warning').style.display = "none";
+  }
+
+  const edgeGap=Math.max(0,Xv-flenV);
+  const floatsNeeded=Math.ceil(clen/Xv),coverage=(floatsNeeded*Xv).toFixed(1);
+  const spanLoad=(SFv*Wv*Xv).toFixed(1),ok=spanLoad<=Bv;
+
+  pt_spacing.innerText=`${Xv.toFixed(2)} m`;
+  pt_edge.innerText=`${edgeGap.toFixed(2)} m`;
+  pt_floats.innerText=floatsNeeded;
+  pt_cover.innerText=`${coverage} m`;
+  pt_status.innerHTML=ok
+    ? `<span class="status-ok">✅ OK (${spanLoad} ≤ ${Bv})</span>`
+    : `<span class="status-bad">❌ Overload (${spanLoad} > ${Bv})</span>`;
+}
+
+// === Save / Clear Functions ===
+function clearCurrent(){pt_spacing.innerText=pt_floats.innerText=pt_cover.innerText=pt_status.innerText=pt_edge.innerText="";fdesc.value="";}
+function saveResult(){
+  const desc=fdesc.value.trim()||"Unnamed Floatation",
+        Xv=+X.value,clen=+clenEl.value,Wv=+W.value,Bv=+B.value,SFv=+SF.value,flenV=+flen.value;
+  const edgeGap=Math.max(0,Xv-flenV);
+  const floatsNeeded=Math.ceil(clen/Xv),coverage=(floatsNeeded*Xv).toFixed(1);
+  const spanLoad=(SFv*Wv*Xv).toFixed(1),ok=spanLoad<=Bv;
+  savedResults.push({desc,Xv,clen,floatsNeeded,coverage,spanLoad,Bv,ok,flenV,edgeGap});
+  renderCards();
+}
+function renderCards(){
+  savedCards.innerHTML="";
+  savedResults.forEach((r,i)=>{
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML=`<div class="card-head"><div class="card-title">${r.desc}</div>
+      <button class="btn" onclick="deleteCard(${i})">Delete</button></div>
+      <div class="card-grid">
+        <div>Cable length</div><div>${r.clen} m</div>
+        <div>Float length</div><div>${r.flenV} m</div>
+        <div>Spacing</div><div>${r.Xv.toFixed(2)} m</div>
+        <div>Edge gap</div><div>${r.edgeGap.toFixed(2)} m</div>
+        <div>Floats required</div><div>${r.floatsNeeded}</div>
+        <div>Coverage length</div><div>${r.coverage} m</div>
+        <div>Status</div><div class="${r.ok?'status-ok':'status-bad'}">${r.ok?'✅ OK':'❌ Overload'}</div>
+      </div>`;
+    savedCards.appendChild(card);
+  });
+}
+function deleteCard(i){savedResults.splice(i,1);renderCards();}
+function clearAll(){savedResults=[];renderCards();}
+
+[W,B,X,SF,depth,clenEl,flen].forEach(el=>el.addEventListener('input',()=>{resetFloats();updatePlanner();draw();}));
+resetDefaults();
+</script>
+</body>
+</html>
