@@ -395,6 +395,41 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .gstep.next .n{border-color:var(--accent);color:var(--accent)}
 .gstep.opt b::after{content:" · optional";font-weight:500;color:var(--muted);font-size:12px}
 
+/* deck sheet v5: at-a-glance page */
+.g-kit{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm;margin-bottom:3.5mm}
+.g-tile{border:2px solid #000;display:flex;gap:3mm;align-items:center;padding:2mm 3mm;min-height:19mm}
+.g-tile>b{font-size:28pt;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;min-width:22mm}
+.g-tile .w{font-size:11pt;font-weight:900;line-height:1.15;text-transform:none}
+.g-tile .s{font-size:8.5pt;line-height:1.3;margin-top:.8mm}
+.g-tile.hero{background:#000;color:#fff;grid-column:span 2}
+.g-tile.hero>b{font-size:40pt}
+.g-tile.hero .w{font-size:14pt;letter-spacing:.04em}
+.g-sw{display:inline-block;width:10pt;height:10pt;border:1px solid #000;vertical-align:-2px;margin-right:4px;flex:none}
+.g-cap{font-size:9pt;font-weight:900;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1mm}
+.g-seq{width:100%;border-collapse:collapse;font-size:10.5pt}
+.g-seq th{background:#000;color:#fff;font-size:7.5pt;text-transform:uppercase;letter-spacing:.05em;padding:1.2mm 2mm;text-align:left}
+.g-seq td{border:1.5px solid #000;padding:1.6mm 2mm;vertical-align:middle;line-height:1.25}
+.g-seq .sq b{font-size:11.5pt}
+.g-seq .no,.sv-head .no{display:inline-grid;place-items:center;width:6mm;height:6mm;border-radius:1.5mm;color:#fff;font-weight:900;font-size:10pt;margin-right:2mm;vertical-align:-1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.g-seq .why{font-size:8pt;color:#333;margin-top:.6mm}
+.g-seq .mk{font-weight:800;white-space:nowrap;font-size:11pt}
+.g-seq .ft{font-size:10.5pt}
+.g-seq .ev{font-size:20pt;font-weight:900;white-space:nowrap;background:#f1f1f1}
+.g-seq .qt{font-size:15pt;font-weight:900;text-align:center}
+.g-seq .tl b{font-size:15pt}
+.g-seq .lt,.g-seq .br{font-size:9.5pt}
+.g-seq tfoot td{font-weight:900;background:#e6e6e6}
+.eq-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:3mm;flex:1;min-height:0}
+.eq{border:1.5px solid #000;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.eq .ph{height:42mm;border-bottom:1px solid #000;background:#f2f2f2 center/contain no-repeat;display:grid;place-items:center;flex:none}
+.eq .ph svg{height:80%}
+.eq-b{padding:2mm 3mm;font-size:9.5pt;line-height:1.35}
+.eq-b h5{margin:0 0 1mm;font-size:8pt;text-transform:uppercase;letter-spacing:.07em}
+.eq-b .nm{font-size:13pt;font-weight:900;margin-bottom:1mm}
+.sv-head{display:flex;flex-wrap:wrap;align-items:center;gap:1.5mm 4mm;padding:1.5mm 3mm;border-bottom:1px solid #000;background:#eee;font-size:10pt}
+.sv-head b{font-size:12pt}
+.sv-head .svx{font-size:14pt;font-weight:900;background:#000;color:#fff;padding:.5mm 2.5mm}
+
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:650;font-size:13px;transition:.25s;z-index:50;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -2389,44 +2424,56 @@ function sheetPagesFor(p) {
   const head = sub => sheetHead(sub).replace('<span>Plan</span>—', `<span>Plan</span>${esc(p.name || 'Untitled plan')}`);
   const stop = !r.ok ? `<div class="sh-stop">STOP — THIS PLAN FAILS ITS CHECKS. DO NOT INSTALL UNTIL IT IS CORRECTED AND APPROVED.<ul>${r.msgs.filter(m => m.level === 'bad').map(m => `<li>${esc(m.text)}</li>`).join('')}</ul></div>` : '';
   if (!r.valid) { pages.push(`${head('Plan incomplete')}${stop}`); return pages; }
-  const f = r.f, b = r.b, ph = (img, fb) => { const s = safeImg(img); return `<div class="ph" style="${s ? `background-image:url('${s}')` : ''}">${s ? '' : fb}</div>`; };
-  const big = v => `<b class="${v.length > 7 ? 'long' : ''}">${v}</b>`;
-  const bridleKey = b ? `${big(fmtInt(r.bridles.length))}<em>between floats, every ${fmtM(num(p.bridleInterval))} m</em>` : `<b>NONE</b><em>no bridles on this plan</em>`;
-  const secRows = r.secs.map((s, i) => `<tr>
-      <td class="nm"><i style="background:${s.colour}"></i>${i + 1}. ${esc(s.name)}</td>
-      <td class="mk">${fmtM(s.from)} → ${fmtM(s.to)} m</td>
-      <td><span class="sw" style="display:inline-block;width:9pt;height:9pt;border:1px solid #000;vertical-align:-1px;margin-right:3px;background:${safeColour(s.f.colour)}"></span><b>${esc(s.f.name)}</b></td>
-      <td class="hv">${fmt(s.X, 2)} m</td>
-      <td class="mk">${fmtInt(s.count)}</td>
-      <td class="hv">${s.tailsPer}</td>
-      <td>${esc(s.s.tailSpec || '—')}</td>
-      <td class="why">${esc(s.s.why || '')}</td></tr>`).join('');
-  pages.push(`${head('Deck crew instructions')}${stop}
-    <div class="sh-key">
-      <div class="hero"><span>Floats to fit</span>${big(fmtInt(r.n))}<em>+ ${fmtInt(r.spares)} spare = ${fmtInt(r.total)} to prepare</em></div>
-      <div class="hero"><span>Tails to fit</span>${big(fmtInt(r.tails))}<em>+ ${fmtInt(r.tailSpares)} spare = ${fmtInt(r.tails + r.tailSpares)} to prepare</em></div>
-      <div><span>First float at</span>${big(fmtM(r.so) + ' m')}<em>cable mark</em></div>
-      <div><span>Last float at</span>${big(fmtM(r.lastMark) + ' m')}<em>cable mark</em></div>
-      <div><span>Bridles</span>${bridleKey}</div>
-    </div>
-    <table class="sh-secs"><thead><tr><th>Section</th><th>Cable marks</th><th>Float</th><th>Float every</th><th>Floats</th><th>Tails / float</th><th>Tail spec</th><th>Why</th></tr></thead>
-      <tbody>${secRows}${r.secs.length > 1 ? `<tr class="tot"><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td></td><td>${fmtInt(r.n)}</td><td>${fmtInt(r.tails)}</td><td colspan="2"></td></tr>` : ''}</tbody></table>
-    ${r.lights.length ? `<table class="sh-lights"><thead><tr><th>Light</th><th>Character</th><th>Range</th><th>Fitted on</th><th>Number</th></tr></thead><tbody>
-      ${r.lights.map(l => `<tr><td><span class="lc" style="background:${l.colour}"></span><b>${esc(l.L.name)}</b></td><td><b>${esc(l.L.character)}</b></td><td>${fmt(num(l.L.range), 1)} nm</td>
-        <td>${l.L.at === 'floats' ? (num(l.L.everyN) <= 1 ? 'every float' : `every ${fmtInt(num(l.L.everyN))} floats`) : l.L.at === 'ends' ? 'first and last float' : l.L.at === 'sections' ? 'first float of each section + last float' : 'every bridle'}</td><td><b>${fmtInt(l.marks.length)}</b></td></tr>`).join('')}</tbody></table>` : ''}
-    <div class="sh-items" style="grid-template-columns:repeat(${Math.min(4, r.floatsUsed.length + 2)},1fr)">
-      ${r.floatsUsed.map(({ f: F, count, names }) => `<div class="sh-item">${ph(F.image, floatIconSVG(F))}<div><h5>Float${r.floatsUsed.length > 1 ? ' — ' + esc(names.join(', ')) : ' — same type throughout'}</h5><div class="nm">${esc(F.name)}</div>
-        <div class="ln"><span class="sw" style="background:${safeColour(F.colour)}"></span>${F.shape === 'round' ? 'Round' : 'Rectangular'} · ${fmt(num(F.length), 2)} × ${fmt(num(F.dia), 2)} m</div>
-        <div class="ln">Net buoyancy <b>${fmtM(num(F.netB))} kg</b> · <b>${fmtInt(count)}</b> to fit</div>
-        ${F.attach ? `<div class="ln"><b>Attach:</b> ${esc(F.attach)}</div>` : ''}</div></div>`).join('')}
-      <div class="sh-item">${b ? ph(b.image, bridleIconSVG()) : ''}<div><h5>Bridle</h5>
-        ${b ? `<div class="nm">${esc(b.name)}</div><div class="ln">SWL <b>${fmt(num(b.swl), 1)} t</b></div>${b.notes ? `<div class="ln" style="white-space:pre-line">${esc(b.notes)}</div>` : ''}<div class="ln">Fit <b>between floats</b>, every ${fmtM(num(p.bridleInterval))} m — first near mark ${fmtM(r.bridles[0]?.mark ?? 0)} m.</div>`
-            : '<div class="nm">None</div>'}</div></div>
-      <div class="sh-item"><div><h5>Cable</h5><div class="nm">${esc(p.cable.desc || 'Cable')}</div>
-        <div class="ln">Length <b>${fmtM(r.L)} m</b> · OD ${fmtM(num(p.cable.od))} mm</div>
-        <div class="ln">No floats: first ${fmtM(r.so)} m${r.eo > 0 ? `, last ${fmtM(r.eo)} m` : ''}</div></div></div>
-    </div>
+  const b = r.b, ph = (img, fb) => { const s = safeImg(img); return `<div class="ph" style="${s ? `background-image:url('${s}')` : ''}">${s ? '' : fb}</div>`; };
+  const pct = Math.max(0, num(p.sparesPct)) / 100, spare = n => Math.ceil(n * pct);
+  const lightRule = L => L.at === 'floats' ? (num(L.everyN) <= 1 ? 'on every float' : `on every ${fmtInt(num(L.everyN))}th float`) : L.at === 'ends' ? 'on first and last float' : L.at === 'sections' ? 'on first float of each section' : 'on every bridle';
+  const inSec = (m, s, last) => m >= s.from - 1e-6 && (last ? m <= s.to + 1e-6 : m < s.to - 1e-6);
+  // tails grouped by spec
+  const tailMap = new Map();
+  r.secs.forEach(s => { if (!s.tails) return; const k = (s.s.tailSpec || 'Tails').trim(); tailMap.set(k, (tailMap.get(k) || 0) + s.tails); });
+  const tile = (qty, what, sub, cls = '', sw = '') => `<div class="g-tile ${cls}"><b>${qty}</b><div><div class="w">${sw}${what}</div><div class="s">${sub}</div></div></div>`;
+  const swatch = c => `<i class="g-sw" style="background:${c}"></i>`;
+  let tiles = tile(fmtInt(r.n), 'FLOATS TO FIT', `+ ${fmtInt(r.spares)} spare = <b>${fmtInt(r.total)}</b> to prepare`, 'hero');
+  if (r.floatsUsed.length > 1 || true) r.floatsUsed.forEach(({ f: F, count }) => tiles += tile(fmtInt(count), esc(F.name), `${fmtM(num(F.netB))} kg float · + ${fmtInt(spare(count))} spare = <b>${fmtInt(count + spare(count))}</b>`, '', swatch(safeColour(F.colour))));
+  tailMap.forEach((n, spec) => tiles += tile(fmtInt(n), 'TAILS', `${esc(spec)} · + ${fmtInt(spare(n))} spare = <b>${fmtInt(n + spare(n))}</b>`));
+  r.lights.forEach(l => tiles += tile(fmtInt(l.marks.length), `LIGHTS · ${esc(l.L.character || l.L.name)}`, `${esc(l.L.name)} ${lightRule(l.L)}`, '', `<i class="g-sw" style="border-radius:50%;background:${l.colour}"></i>`));
+  if (b) tiles += tile(fmtInt(r.bridles.length), 'BRIDLES', `${esc(b.name)} · between floats every <b>${fmtM(num(p.bridleInterval))} m</b>`, '', '<i class="g-sw" style="background:#7a2fc9;transform:rotate(45deg) scale(.8)"></i>');
+  const seqRows = r.secs.map((s, i) => {
+    const last = i === r.secs.length - 1;
+    const lts = r.lights.map(l => ({ l, n: l.marks.filter(m => inSec(m, s, last)).length })).filter(x => x.n);
+    const brs = r.bridles.map((x, j) => ({ j, m: x.mark })).filter(x => inSec(x.m, s, last));
+    const brTxt = !brs.length ? '—' : brs.length <= 3 ? brs.map(x => `<b>B${x.j + 1}</b> ${fmtInt(x.m)} m`).join('<br>') : `<b>B${brs[0].j + 1}–B${brs[brs.length - 1].j + 1}</b> (${brs.length})<br>every ${fmtM(num(p.bridleInterval))} m`;
+    return `<tr>
+      <td class="sq"><span class="no" style="background:${s.colour}">${i + 1}</span><b>${esc(s.name)}</b>${s.s.why ? `<div class="why">${esc(s.s.why)}</div>` : ''}</td>
+      <td class="mk">${fmtM(s.from)} m<br>→ ${fmtM(s.to)} m</td>
+      <td class="ft">${swatch(safeColour(s.f.colour))}<b>${esc(s.f.name)}</b></td>
+      <td class="ev">${fmt(s.X, 2)} m</td>
+      <td class="qt">${fmtInt(s.count)}</td>
+      <td class="tl"><b>${s.tailsPer}</b> per float</td>
+      <td class="lt">${lts.length ? lts.map(x => `<span><i class="g-sw" style="border-radius:50%;background:${x.l.colour}"></i><b>${x.n}</b> ${esc(x.l.L.character)}</span>`).join('<br>') : '—'}</td>
+      <td class="br">${brTxt}</td></tr>`;
+  }).join('');
+  pages.push(`${head('At a glance — what to prepare and how to fit it')}${stop}
+    <div class="g-kit">${tiles}</div>
+    <div class="g-cap">Fit in this order, from the first end of the cable</div>
+    <table class="g-seq"><thead><tr><th>Section</th><th>Cable marks</th><th>Float</th><th>Float every</th><th>Floats</th><th>Tails</th><th>Lights</th><th>Bridles</th></tr></thead>
+      <tbody>${seqRows}</tbody>
+      ${r.secs.length > 1 ? `<tfoot><tr><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td></td><td class="qt">${fmtInt(r.n)}</td><td><b>${fmtInt(r.tails)}</b></td><td>${r.lights.map(l => `<b>${l.marks.length}</b>`).join(' + ') || '—'}</td><td>${b ? `<b>${r.bridles.length}</b>` : '—'}</td></tr></tfoot>` : ''}
+    </table>
     ${p.remarks ? `<div class="sh-note"><b>Remarks:</b> ${esc(p.remarks)}</div>` : ''}`);
+
+  // equipment page: photos and specs of everything on the kit list
+  const cards = [];
+  r.floatsUsed.forEach(({ f: F, count, names }) => cards.push(`<div class="eq">${ph(F.image, floatIconSVG(F))}<div class="eq-b"><h5>Float · ${fmtInt(count)} to fit</h5><div class="nm">${swatch(safeColour(F.colour))}${esc(F.name)}</div>
+      <div class="ln">Net buoyancy <b>${fmtM(num(F.netB))} kg</b> · ${F.shape === 'round' ? 'round' : 'rectangular'} ${fmt(num(F.length), 2)} × ${fmt(num(F.dia), 2)} m</div>
+      <div class="ln">Used in: ${esc(names.join(', '))}</div>${F.attach ? `<div class="ln"><b>Attach:</b> ${esc(F.attach)}</div>` : ''}</div></div>`));
+  if (b) cards.push(`<div class="eq">${ph(b.image, bridleIconSVG())}<div class="eq-b"><h5>Bridle · ${fmtInt(r.bridles.length)} to fit</h5><div class="nm">${esc(b.name)}</div>
+      <div class="ln">SWL <b>${fmt(num(b.swl), 1)} t</b> · between floats every <b>${fmtM(num(p.bridleInterval))} m</b></div>${b.notes ? `<div class="ln" style="white-space:pre-line">${esc(b.notes)}</div>` : ''}</div></div>`);
+  r.lights.forEach(l => cards.push(`<div class="eq"><div class="ph"><svg viewBox="0 0 100 80"><circle cx="50" cy="38" r="26" fill="${l.colour}" opacity=".3"/><circle cx="50" cy="38" r="13" fill="${l.colour}" stroke="#000" stroke-width="2"/><line x1="50" y1="51" x2="50" y2="72" stroke="#000" stroke-width="3"/></svg></div><div class="eq-b"><h5>Light · ${fmtInt(l.marks.length)} to fit</h5><div class="nm">${esc(l.L.name)}</div>
+      <div class="ln">Character <b>${esc(l.L.character)}</b>${num(l.L.range) ? ` · visible ${fmt(num(l.L.range), 1)} nm` : ''}</div><div class="ln">Fit ${lightRule(l.L)}</div></div></div>`));
+  cards.push(`<div class="eq"><div class="eq-b"><h5>Cable</h5><div class="nm">${esc(p.cable.desc || 'Cable')}</div>
+      <div class="ln">Length <b>${fmtM(r.L)} m</b> · OD ${fmtM(num(p.cable.od))} mm</div><div class="ln">First float at mark <b>${fmtM(r.so)} m</b>${r.eo > 0 ? ` · last ${fmtM(r.eo)} m unfloated` : ''}</div></div></div>`);
+  for (let i = 0; i < cards.length; i += 6) pages.push(`${head('Equipment')}<div class="eq-grid">${cards.slice(i, i + 6).join('')}</div>`);
 
   const at = p.attach;
   if (at.text || at.ref || at.images.length) {
@@ -2436,7 +2483,7 @@ function sheetPagesFor(p) {
       ${ch.length ? `<div class="sh-att" style="${ch.length <= 2 ? 'grid-template-columns:repeat(' + ch.length + ',1fr)' : ''}">${ch.map(im => `<figure><img src="${safeImg(im.img)}" alt="">${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}`));
   }
   for (let i = 0; i < r.secs.length; i += 2) {
-    const views = r.secs.slice(i, i + 2).map(s => `<div class="sh-diagram"><h5>Side view — ${esc(s.name)} · float every ${fmt(s.X, 2)} m · ${s.tailsPer} tail${s.tailsPer === 1 ? '' : 's'} per float${s.s.tailSpec ? ` (${esc(s.s.tailSpec)})` : ''} · marks ${fmtM(s.from)}–${fmtM(s.to)} m</h5><div class="svg">${elevationSVG(p, r, s.i, PAL_PRINT)}</div></div>`).join('');
+    const views = r.secs.slice(i, i + 2).map(s => `<div class="sh-diagram"><div class="sv-head"><span class="no" style="background:${s.colour}">${s.i + 1}</span><b>${esc(s.name)}</b><span>${fmtM(s.from)} → ${fmtM(s.to)} m</span><span><i class="g-sw" style="background:${safeColour(s.f.colour)}"></i>${esc(s.f.name)}</span><span class="svx">EVERY ${fmt(s.X, 2)} m</span><span>${s.tailsPer} tails per float</span><span>${fmtInt(s.count)} floats</span></div><div class="svg">${elevationSVG(p, r, s.i, PAL_PRINT).replace(/font-size:(\d+(?:\.\d+)?)px/g, (m, n) => `font-size:${(n * 1.35).toFixed(1)}px`)}</div></div>`).join('');
     pages.push(`${head('Side views — float size and spacing to scale')}<div class="sh-views" style="${r.secs.length - i === 1 ? 'grid-template-rows:1fr' : ''}">${views}</div>
       ${i === 0 ? `<div class="sh-box" style="flex:none;margin-top:3mm"><h5>Whole cable — first end on the left${r.b ? ' · ◆ = bridle' : ''}</h5><div class="in" style="padding:1mm 2mm">${overviewSVG(p, r, PAL_PRINT)}</div></div>` : ''}`);
   }
