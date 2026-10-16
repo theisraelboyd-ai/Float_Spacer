@@ -1363,9 +1363,11 @@ function fitView(info, bg, aspect) {
 function routeSVG(p, r, pal, opt = {}) {
   const info = r.route;
   if (!r.valid || !info) return placeholderSVG('Fix the planner inputs to draw the route', 1000, 500, pal);
-  const v = opt.view || fitView(info, p.route.bg, opt.aspect || 2);
-  const fs = v.w / (opt.print ? 48 : 60), sw = 'vector-effect="non-scaling-stroke"';
-  const tx = (x, y, t, st = '', anchor = 'start') => `<text x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${fs}px;paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.22}px;stroke-linejoin:round;${st}">${esc(t)}</text>`;
+  let v = opt.view || fitView(info, p.route.bg, opt.aspect || 2);
+  if (opt.print && !opt.view) v = { x: v.x, y: v.y - v.h * 0.15, w: v.w * 1.3, h: v.h * 1.3 };   // room on the right for the legend
+  // text keeps the same size on screen at any zoom (≈12.5 px), so it never swamps a small route
+  const fs = opt.print ? v.w / 72 : v.w * 12.5 / Math.max(300, opt.pxWidth || 1000), sw = 'vector-effect="non-scaling-stroke"';
+  const tx = (x, y, t, st = '', anchor = 'start', size = 1) => `<text x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${fs * size}px;paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * size * 0.24}px;stroke-linejoin:round;${st}">${esc(t)}</text>`;
   let o = `<svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Segoe UI,Arial,sans-serif">`;
   const bg = p.route.bg, geo = p.route.geo;
   const tiles = tilesSVG(v, geo, opt.pxWidth || 1000);
@@ -1373,7 +1375,7 @@ function routeSVG(p, r, pal, opt = {}) {
   if (bg && safeImg(bg.img)) o += `<image href="${bg.img}" x="${bg.x}" y="${bg.y}" width="${bg.widthM}" height="${bg.heightM || bg.widthM * bg.aspect}" preserveAspectRatio="none" opacity="${clamp(num(bg.opacity, 0.6), 0.05, 1)}"/>`;
   o += overlaySVG(geo, pal, fs);
   // grid, measured from the start of the route so labels read as distances
-  const U0 = info.U[0], g = niceStep(v.w / 10), gl = fs * 0.8;
+  const U0 = info.U[0], g = niceStep(v.w / 10), gl = fs * 0.85;
   const gtxt = (x, y, t, a) => `<text x="${x}" y="${y}" text-anchor="${a}" style="font-size:${gl}px;fill:${pal.muted};paint-order:stroke;stroke:${pal.halo};stroke-width:${gl * 0.25}px">${t}</text>`;
   let glab = '';
   for (let gx = U0[0] + Math.ceil((v.x - U0[0]) / g) * g; gx <= v.x + v.w; gx += g) {
@@ -1389,31 +1391,30 @@ function routeSVG(p, r, pal, opt = {}) {
     for (let i = 0; i <= n; i++) { const q = info.at(s0 + (s1 - s0) * i / n); d += (i ? 'L' : 'M') + q[0].toFixed(2) + ' ' + q[1].toFixed(2); }
     return d;
   };
+  const normal = s => { const a = info.at(Math.max(0, s - 0.5)), b = info.at(Math.min(info.length, s + 0.5)); const nx = -(b[1] - a[1]), ny = b[0] - a[0], l = Math.hypot(nx, ny) || 1; return [nx / l, ny / l]; };
   o += `<path d="${pathBetween(0, info.length)}" style="fill:none;stroke:${pal.cable};stroke-width:3;stroke-dasharray:6 5;stroke-linecap:round" ${sw}/>`;
   r.secs.forEach(sc => {
     const s0 = sc.from - r.so, s1 = Math.min(info.length, sc.to - r.so); if (s1 <= s0) return;
     o += `<path d="${pathBetween(s0, s1)}" style="fill:none;stroke:${sc.colour};stroke-width:${opt.print ? 5 : 6};stroke-linejoin:round" ${sw}/>`;
   });
   r.secs.forEach((sc, i) => {
-    const s0 = sc.from - r.so; if (s0 > info.length) return;
-    if (i > 0) { const q = info.at(s0); o += `<circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.3}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:1.5" ${sw}/>`; }
-    if (r.secs.length > 1) {
-      const m = info.at(Math.min(info.length, (s0 + Math.min(info.length, sc.to - r.so)) / 2));
-      o += tx(m[0], m[1] - fs * 0.9, `${sc.name} · ${fmt(sc.X, 2)} m`, `fill:${sc.colour};font-weight:800`, 'middle');
-    }
+    const s0 = sc.from - r.so; if (i === 0 || s0 > info.length) return;
+    const q = info.at(s0); o += `<circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.32}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:1.5" ${sw}/>`;
   });
-  const ms = niceStep(info.length / 7);
+  // cable marks on one side of the line (only as many as fit), bridle labels on the other
+  const ms = niceStep(Math.max(info.length / 7, fs * 9));
   for (let s = ms; s < info.length - ms * 0.3; s += ms) {
-    const a = info.at(s), b = info.at(Math.min(info.length, s + 0.5));
-    const nx = -(b[1] - a[1]), ny = b[0] - a[0], nl = Math.hypot(nx, ny) || 1;
-    o += `<circle cx="${a[0]}" cy="${a[1]}" r="${fs * 0.13}" style="fill:${pal.text}"/>`;
-    o += tx(a[0] + nx / nl * fs * 1.1, a[1] + ny / nl * fs * 1.1 + fs * 0.35, `${fmtInt(r.so + s)} m`, `fill:${pal.muted}`, 'middle');
+    const a = info.at(s), n = normal(s);
+    o += `<circle cx="${a[0]}" cy="${a[1]}" r="${fs * 0.14}" style="fill:${pal.text}"/>`;
+    o += tx(a[0] + n[0] * fs * 1.2, a[1] + n[1] * fs * 1.2 + fs * 0.3, `${fmtInt(r.so + s)} m`, `fill:${pal.muted}`, 'middle', 0.85);
   }
+  let lastLab = null;
   r.bridles.forEach((b, j) => {
     const s = b.mark - r.so; if (s > info.length) return;
-    const q = info.at(s), k = fs * 0.42;
+    const q = info.at(s), k = fs * 0.45, n = normal(s);
     o += `<path d="M${q[0]} ${q[1] - k} L${q[0] + k} ${q[1]} L${q[0]} ${q[1] + k} L${q[0] - k} ${q[1]}Z" style="fill:${pal.bridle};stroke:${pal.halo};stroke-width:1.2" ${sw}/>`;
-    if (r.bridles.length <= 30) o += tx(q[0] + k * 1.3, q[1] - k * 1.1, `B${j + 1}`, `fill:${pal.bridle};font-weight:800`);
+    const lp = [q[0] - n[0] * fs * 1.25, q[1] - n[1] * fs * 1.25 + fs * 0.3];
+    if (!lastLab || Math.hypot(lp[0] - lastLab[0], lp[1] - lastLab[1]) > fs * 2.2) { o += tx(lp[0], lp[1], `B${j + 1}`, `fill:${pal.bridle};font-weight:800`, 'middle'); lastLab = lp; }
   });
   const U = info.U, A = U[0], Z = U[U.length - 1];
   const endLabel = (P, Q, other, text) => {
@@ -1425,27 +1426,45 @@ function routeSVG(p, r, pal, opt = {}) {
     else { anchor = dx < 0 ? 'end' : 'start'; x = P[0] + (dx < 0 ? -1 : 1) * fs * 0.8; y = P[1] + (P[1] <= other[1] ? -fs * 0.6 : fs * 1.2); }
     return tx(x, y, text, `fill:${pal.text};font-weight:800`, anchor);
   };
-  o += `<circle cx="${A[0]}" cy="${A[1]}" r="${fs * 0.45}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:2" ${sw}/>`;
-  o += `<rect x="${Z[0] - fs * 0.4}" y="${Z[1] - fs * 0.4}" width="${fs * 0.8}" height="${fs * 0.8}" style="fill:${pal.text}"/>`;
+  o += `<circle cx="${A[0]}" cy="${A[1]}" r="${fs * 0.5}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:2" ${sw}/>`;
+  o += `<rect x="${Z[0] - fs * 0.45}" y="${Z[1] - fs * 0.45}" width="${fs * 0.9}" height="${fs * 0.9}" style="fill:${pal.text}"/>`;
   o += endLabel(A, U[Math.min(U.length - 1, 3)], Z, `${p.route.startLabel || 'Start'} · ${fmtM(r.so)} m`);
   o += endLabel(Z, U[Math.max(0, U.length - 4)], A, `${p.route.endLabel || 'End'} · ${fmtM(Math.round(r.so + info.length))} m`);
-  // lights along the route
-  if (p.route.showLights) (r.lights || []).forEach(l => l.marks.forEach(m => {
+  const lightsOn = p.route.showLights && (r.lights || []).some(l => l.marks.length);
+  if (lightsOn) (r.lights || []).forEach(l => l.marks.forEach(m => {
     const s = m - r.so; if (s < -1e-6 || s > info.length + 1) return;
-    const q = info.at(Math.max(0, s)), rr = fs * 0.26;
+    const q = info.at(Math.max(0, s)), rr = fs * 0.28;
     o += `<circle cx="${q[0]}" cy="${q[1]}" r="${rr * 2.2}" style="fill:${l.colour};opacity:.28"/><circle cx="${q[0]}" cy="${q[1]}" r="${rr}" style="fill:${l.colour};stroke:${pal.stroke};stroke-width:1" ${sw}/>`;
   }));
   o += vesselsSVG(p, r, pal, fs, sw, tx, opt.interactive);
-  if (tiles.credit) o += `<text x="${v.x + v.w - fs * 0.4}" y="${v.y + v.h - fs * 0.4}" text-anchor="end" style="font-size:${fs * 0.65}px;fill:${pal.text};paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.2}px">${esc(tiles.credit)}</text>`;
+  if (tiles.credit) o += `<text x="${v.x + v.w - fs * 0.4}" y="${v.y + v.h - fs * 0.4}" text-anchor="end" style="font-size:${fs * 0.7}px;fill:${pal.text};paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.2}px">${esc(tiles.credit)}</text>`;
   o += glab;
-  const kx = v.x + v.w - fs * 0.6, ky = v.y + fs * 2.6, ks = fs * 1.1;
-  o += `<rect x="${kx - ks - fs * 9.2}" y="${ky - ks * 0.95}" width="${fs * 9.6 + ks}" height="${ks * 1.5}" rx="${fs * 0.2}" style="fill:${pal.halo};opacity:.92"/>`;
-  o += `<rect x="${kx - ks}" y="${ky - ks * 0.75}" width="${ks}" height="${ks}" style="fill:none;stroke:${pal.text};stroke-width:1.5" ${sw}/>`;
-  o += `<text x="${kx - ks - fs * 0.4}" y="${ky}" text-anchor="end" style="font-size:${fs}px;font-weight:800;fill:${pal.text}">Grid square ${fmtInt(g)} m</text>`;
-  if (opt.interactive) info.pts.forEach((q, i) => {
-    o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.9}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.38}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`;
+  // legend: the key facts in one box instead of labels along the line
+  const rows = [];
+  r.secs.forEach(sc => rows.push({ k: 'sec', c: sc.colour, t: `${sc.name} · every ${fmt(sc.X, 2)} m · ${fmtM(sc.B)} kg float` }));
+  if (r.bridles.length) rows.push({ k: 'br', t: `Bridles B1–B${r.bridles.length} · every ${fmtM(num(p.bridleInterval))} m` });
+  if ((p.vessels || []).some(a => vesselById(a.vesselId))) rows.push({ k: 'ves', t: `Support vessels (${p.vessels.filter(a => vesselById(a.vesselId)).length})` });
+  if (lightsOn) r.lights.filter(l => l.marks.length).forEach(l => rows.push({ k: 'lt', c: l.colour, t: `${l.L.character || l.L.name} · ${fmtInt(l.marks.length)} lights` }));
+  rows.push({ k: 'se', t: `Start ${fmtM(r.so)} m · End ${fmtM(Math.round(r.so + info.length))} m` });
+  rows.push({ k: 'grid', t: `Grid square ${fmtInt(g)} m` });
+  const lh = fs * 1.45, lw = Math.max(...rows.map(x => x.t.length)) * fs * 0.56 + fs * 3.2;
+  const lhTot = rows.length * lh + fs * 0.7;
+  const lx = opt.print ? v.x + v.w - lw - fs * 0.6 : v.x + fs * 2.6, ly = opt.print ? v.y + v.h - lhTot - fs * 1.6 : v.y + fs * 2.2;
+  o += `<rect x="${lx}" y="${ly}" width="${lw}" height="${lhTot}" rx="${fs * 0.35}" style="fill:${pal.halo};opacity:.93;stroke:${pal.grid}" ${sw}/>`;
+  rows.forEach((x, i) => {
+    const cy = ly + fs * 0.35 + lh * (i + 0.5), ix = lx + fs * 1.1;
+    if (x.k === 'sec') o += `<line x1="${ix - fs * 0.6}" y1="${cy}" x2="${ix + fs * 0.6}" y2="${cy}" style="stroke:${x.c};stroke-width:${fs * 0.35}"/>`;
+    if (x.k === 'br') o += `<path d="M${ix} ${cy - fs * 0.4} l${fs * 0.4} ${fs * 0.4} l${-fs * 0.4} ${fs * 0.4} l${-fs * 0.4} ${-fs * 0.4}z" style="fill:${pal.bridle}"/>`;
+    if (x.k === 'ves') o += `<path d="M${ix + fs * 0.7} ${cy} L${ix + fs * 0.1} ${cy - fs * 0.35} L${ix - fs * 0.6} ${cy - fs * 0.35} L${ix - fs * 0.6} ${cy + fs * 0.35} L${ix + fs * 0.1} ${cy + fs * 0.35}Z" style="fill:#f97316"/>`;
+    if (x.k === 'lt') o += `<circle cx="${ix}" cy="${cy}" r="${fs * 0.3}" style="fill:${x.c};stroke:${pal.stroke};stroke-width:1" ${sw}/>`;
+    if (x.k === 'se') o += `<circle cx="${ix - fs * 0.35}" cy="${cy}" r="${fs * 0.25}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:1.5" ${sw}/><rect x="${ix + fs * 0.1}" y="${cy - fs * 0.25}" width="${fs * 0.5}" height="${fs * 0.5}" style="fill:${pal.text}"/>`;
+    if (x.k === 'grid') o += `<rect x="${ix - fs * 0.35}" y="${cy - fs * 0.35}" width="${fs * 0.7}" height="${fs * 0.7}" style="fill:none;stroke:${pal.text};stroke-width:1.2" ${sw}/>`;
+    o += `<text x="${lx + fs * 2.2}" y="${cy + fs * 0.35}" style="font-size:${fs}px;fill:${pal.text};font-weight:${x.k === 'sec' ? 700 : 600}">${esc(x.t)}</text>`;
   });
-  const sb = niceStep(v.w / 6), sx = v.x + v.w * 0.03, sy = v.y + v.h - fs * 1.2;
+  if (opt.interactive) info.pts.forEach((q, i) => {
+    o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 1.1}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.5}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`;
+  });
+  const sb = niceStep(v.w / 6), sx = v.x + v.w * 0.03, sy = v.y + v.h - fs * 1.4;
   o += `<line x1="${sx}" y1="${sy}" x2="${sx + sb}" y2="${sy}" style="stroke:${pal.text};stroke-width:3" ${sw}/>`;
   o += `<line x1="${sx}" y1="${sy - fs * .3}" x2="${sx}" y2="${sy + fs * .3}" style="stroke:${pal.text};stroke-width:2" ${sw}/><line x1="${sx + sb}" y1="${sy - fs * .3}" x2="${sx + sb}" y2="${sy + fs * .3}" style="stroke:${pal.text};stroke-width:2" ${sw}/>`;
   o += tx(sx + sb / 2, sy - fs * 0.5, `${fmtInt(sb)} m`, `fill:${pal.text};font-weight:700`, 'middle');
@@ -1476,7 +1495,7 @@ function vesselsSVG(p, r, pal, fs, sw, tx, interactive) {
     const lab = P(-L / 2 - fs * 1.4, 0);
     o += tx(lab[0], lab[1] + fs * 0.35, `${v.name}${v.callSign ? ' · ' + v.callSign : ''}`, `fill:${col};font-weight:800`, 'middle');
     const sub = [a.task, fixed ? `hold ${String(Math.round(((pose.h % 360) + 360) % 360)).padStart(3, '0')}°` : `±${fmtM(num(a.radius))} m`].filter(Boolean).join(' · ');
-    o += tx(lab[0], lab[1] + fs * 1.35, sub, `fill:${pal.muted}`, 'middle');
+    o += tx(lab[0], lab[1] + fs * 1.25, sub, `fill:${pal.muted}`, 'middle', 0.85);
     o += '</g>';
     if (interactive) { const rh = P(L / 2 + fs * 1.1, 0); o += `<g class="vrot" data-va="${a.id}" style="cursor:grab"><title>Drag to turn the vessel</title><line x1="${P(L / 2, 0)[0]}" y1="${P(L / 2, 0)[1]}" x2="${rh[0]}" y2="${rh[1]}" style="stroke:${col};stroke-width:1.5;stroke-dasharray:2 2" ${sw}/><circle cx="${rh[0]}" cy="${rh[1]}" r="${fs * 0.42}" style="fill:${pal.halo};stroke:${col};stroke-width:2.5" ${sw}/><circle cx="${rh[0]}" cy="${rh[1]}" r="${fs * 0.9}" style="fill:transparent"/></g>`; }
   });
@@ -1812,7 +1831,7 @@ function applyRPanels() {
   $$('#rPanels .panel').forEach(el => el.classList.toggle('active', el.dataset.rpanel === RPL.panel));
 }
 function blankRouteSVG(view, pts, p) {
-  const v = view, g = niceStep(v.w / 10), sw = 'vector-effect="non-scaling-stroke"', fs = v.w / 60;
+  const v = view, g = niceStep(v.w / 10), sw = 'vector-effect="non-scaling-stroke"', fs = v.w * 12.5 / Math.max(300, $('#routeSvg').clientWidth || 1000);
   let o = `<svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
   const tiles = tilesSVG(v, p.route.geo, $('#routeSvg').clientWidth || 1000); o += tiles.svg;
   const bg = p.route.bg;
@@ -1820,7 +1839,7 @@ function blankRouteSVG(view, pts, p) {
   o += overlaySVG(p.route.geo, PAL_SCREEN, fs);
   for (let gx = Math.ceil(v.x / g) * g; gx <= v.x + v.w; gx += g) o += `<line x1="${gx}" y1="${v.y}" x2="${gx}" y2="${v.y + v.h}" style="stroke:var(--grid)" ${sw}/>`;
   for (let gy = Math.ceil(v.y / g) * g; gy <= v.y + v.h; gy += g) o += `<line x1="${v.x}" y1="${gy}" x2="${v.x + v.w}" y2="${gy}" style="stroke:var(--grid)" ${sw}/>`;
-  pts.forEach((q, i) => o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.9}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.38}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`);
+  pts.forEach((q, i) => o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 1.1}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.5}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`);
   o += `<text x="${v.x + v.w / 2}" y="${v.y + fs * 2}" text-anchor="middle" style="fill:var(--text);font-size:${fs * 1.1}px;font-weight:700;paint-order:stroke;stroke:var(--surface-2);stroke-width:${fs * 0.25}px">Click to place the route points, starting from the first float</text>`;
   if (tiles.credit) o += `<text x="${v.x + v.w - fs * 0.4}" y="${v.y + v.h - fs * 0.4}" text-anchor="end" style="font-size:${fs * 0.65}px;fill:var(--text)">${esc(tiles.credit)}</text>`;
   return o + '</svg>';
