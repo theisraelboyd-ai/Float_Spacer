@@ -1024,19 +1024,23 @@ function calc(p) {
     const sf = secFloat(s), B = num(sf.netB);
     const sr = { i, s, f: sf, B, flen: num(sf.length), name: s.name || `Section ${i + 1}`, colour: secColour(i), from: a, to: end, len, X, W,
                  first: r.positions.length };
-    let k = 0;
+    let k = 0, start = a;
     if (r.positions.length && Math.abs(r.positions[r.positions.length - 1] - a) < 1e-6) k = 1;
-    // a short leftover gap at a section joint (e.g. 0.6 m) makes a useless tail: drop the float before the joint instead
-    else if (r.positions.length > 1 && r.secs.length) {
-      const prev = r.secs[r.secs.length - 1], g = a - r.positions[r.positions.length - 1];
-      if (g > 1e-6 && g < Math.min(1, 0.5 * prev.X) && prev.count > 1) {
-        const dropped = r.positions.pop(); prev.count--; prev.lastMark = r.positions[r.positions.length - 1];
-        r.msgs.push({ level: 'info', text: `Joint at ${fmtM(a)} m: float at ${fmt(dropped, 2)} m left out (only ${fmt(g, 2)} m short of the joint) — joint tail ${fmt(a - prev.lastMark, 2)} m.` });
-        if (a - prev.lastMark > prev.xSafe + 1e-9) r.msgs.push({ level: 'warn', text: `Joint gap of ${fmt(a - prev.lastMark, 2)} m before ${sr.name} is above the safe spacing for ${prev.name}.` });
-      }
+    // joint: the leftover gap is rounded UP to a standard tail length already in use, so no odd short tails are cut.
+    // The first float of this section moves along to suit (span stays within both floats' capacity).
+    else if (r.positions.length && r.secs.length) {
+      const prev = r.secs[r.secs.length - 1], P = r.positions[r.positions.length - 1], g = a - P;
+      const std = [...new Set(p.sections.map(x => num(x.spacing)).filter(x => x > 0))].sort((x, y) => x - y);
+      const span = Lj => prev.W * g + W * (Lj - g);   // cable weight hanging in the joint span, shared by the floats either side
+      const ok = Lj => Lj >= g - 1e-6 && P + Lj <= end + 1e-6 && SF * (prev.W * prev.X + span(Lj)) / 2 <= prev.B + 1e-9 && SF * (span(Lj) + W * X) / 2 <= B + 1e-9;
+      const Lj = std.find(ok);
+      if (Lj != null) {
+        start = P + Lj;
+        if (Math.abs(Lj - g) > 1e-6) r.msgs.push({ level: 'info', text: `Joint at ${fmtM(a)} m: ${fmt(g, 2)} m gap rounded up to a standard ${fmt(Lj, 2)} m tail — first ${sr.name} float at ${fmt(start, 2)} m.` });
+      } else r.msgs.push({ level: 'warn', text: `Joint at ${fmtM(a)} m: no standard tail fits the ${fmt(g, 2)} m gap — an odd tail is needed here.` });
     }
     sr.first = r.positions.length;
-    for (; a + k * X <= end + 1e-6 && r.positions.length < 20001; k++) r.positions.push(a + k * X);
+    for (; start + k * X <= end + 1e-6 && r.positions.length < 20001; k++) r.positions.push(start + k * X);
     sr.count = r.positions.length - sr.first;
     sr.firstMark = sr.count ? r.positions[sr.first] : null;
     sr.lastMark = sr.count ? r.positions[r.positions.length - 1] : null;
@@ -1050,7 +1054,7 @@ function calc(p) {
     sr.xSafe = Math.floor(safe / sstep + 1e-9) * sstep;
     sr.edgeGap = X - sr.flen;
     sr.tailsPer = Math.max(0, Math.round(num(s.tailsPer, 1)));
-    sr.tailLen = Math.round((X + Math.max(0, num(p.tailAllowance))) * 20) / 20;
+    sr.tailLen = Math.ceil((X + Math.max(0, num(p.tailAllowance))) * 20 - 1e-6) / 20;
     sr.tails = 0; sr.ropeLen = 0; sr.cuts = [];
     r.secs.push(sr);
     wsum += W * len; buoy += sr.count * B; a = end;
@@ -1073,7 +1077,7 @@ function calc(p) {
   r.secs.forEach(sc => {
     for (let k = sc.first; k < sc.first + sc.count; k++) {
       if (k === 0) continue;
-      const L = Math.round((r.positions[k] - r.positions[k - 1] + allow) * 20) / 20, q = sc.tailsPer; if (!q) continue;   // cut lengths to the nearest 5 cm
+      const L = Math.ceil((r.positions[k] - r.positions[k - 1] + allow) * 20 - 1e-6) / 20, q = sc.tailsPer; if (!q) continue;   // cut lengths rounded UP to 5 cm
       sc.tails += q; sc.ropeLen += q * L;
       const key = `${sc.s.tailSpec}|${L}|${sc.s.tailEnd}`;
       const c = cutMap.get(key) || { spec: (sc.s.tailSpec || 'Tail').trim(), len: L, end: (sc.s.tailEnd || '').trim(), n: 0, secs: [] };
