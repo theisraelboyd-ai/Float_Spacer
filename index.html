@@ -159,16 +159,16 @@ details.explain code{background:var(--input);padding:1px 5px;border-radius:4px;c
 .sec-table i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
 
 /* ---------- route ---------- */
-.route-layout{display:grid;grid-template-columns:1fr 310px;gap:14px;align-items:start}
-@media (max-width:1000px){.route-layout{grid-template-columns:1fr}}
+.route-layout{display:block}
+.route-side{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:14px;align-items:start}
 .route-toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
 .route-toolbar .sep{width:1px;height:26px;background:var(--border);margin:0 4px}
-#routeSvgWrap{position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2);height:min(68vh,640px);touch-action:none}
+#routeSvgWrap{position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2);height:min(74vh,780px);touch-action:none}
 #routeSvgWrap svg{width:100%;height:100%;display:block;cursor:crosshair;user-select:none}
 #routeSvgWrap.mode-move svg{cursor:grab}
 #routeSvgWrap .handle{cursor:move}
 .route-help{font-size:12px;color:var(--muted);margin-top:8px}
-.route-side .card{margin-bottom:12px}
+.route-side .card{margin:0}
 
 /* ---------- libraries ---------- */
 .lib-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
@@ -371,6 +371,23 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .sh-lights td{border:1.5px solid #000;padding:1mm 2mm}
 .sh-lights .lc{display:inline-block;width:10pt;height:10pt;border-radius:50%;border:1px solid #000;vertical-align:-2px;margin-right:4px}
 
+@media (min-width:760px){.route-side .geo-card{grid-column:span 2;grid-row:span 2}.geo-card{columns:2;column-gap:28px}.geo-card>*{break-inside:avoid}.geo-card .card-h{column-span:all}}
+/* guide */
+.guide{margin-bottom:12px;border-left:4px solid var(--accent)}
+.guide .card-h{margin-bottom:10px}
+.guide .prog{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden;flex:1;max-width:220px}
+.guide .prog i{display:block;height:100%;background:var(--accent)}
+.gsteps{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.gstep{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);cursor:pointer;text-align:left}
+.gstep:hover{border-color:var(--accent)}
+.gstep .n{grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;border:2px solid var(--border);font-size:12.5px}
+.gstep b{font-size:13.5px}
+.gstep span{font-size:12.5px;color:var(--muted)}
+.gstep.done .n{background:var(--ok);border-color:var(--ok);color:#03210f}
+.gstep.next{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.gstep.next .n{border-color:var(--accent);color:var(--accent)}
+.gstep.opt b::after{content:" · optional";font-weight:500;color:var(--muted);font-size:12px}
+
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:650;font-size:13px;transition:.25s;z-index:50;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -401,6 +418,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <button class="btn sm" id="btnNewPlan" title="Start a new plan">+ New</button>
     <button class="btn sm" id="btnDupPlan" title="Copy this plan">Duplicate</button>
   </div>
+  <div class="row">
+    <button class="btn sm" id="btnGuide" title="Step-by-step setup guide">Guide</button>
+    <button class="btn sm" id="btnDemo" title="Add a worked example plan">Load demo</button>
+  </div>
   <button class="btn icon-btn" id="themeToggle" title="Switch light / dark"><svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
 </header>
 
@@ -421,6 +442,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     <input id="planName" data-path="name" placeholder="Plan name, e.g. Skye – second end omega" aria-label="Plan name">
     <button class="btn" id="btnAllData" aria-pressed="false">Show all data</button>
   </div>
+  <div class="card guide" id="guide" hidden></div>
   <div class="kpis" id="kpis"></div>
   <div id="alerts"></div>
 
@@ -550,7 +572,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
         <button class="btn sm" id="rtUndo">Undo</button>
         <button class="btn sm" id="rtFitLen" title="Scale the shape so its length matches the floated cable">Fit to cable length</button>
         <button class="btn sm" id="rtFitView">Fit view</button>
-        <button class="btn sm danger" id="rtClear">Clear</button>
+        <button class="btn sm danger" id="rtClear" title="Clear the drawn route (keeps the map)">Clear route</button>
+        <span class="sep"></span>
+        <button class="btn sm" id="rtLights" aria-pressed="false" title="Show lights on the map">Show lights</button>
+        <button class="btn sm danger" id="rtClearBg" title="Remove the map, chart image and overlay">Clear background</button>
       </div>
       <div id="routeSvgWrap"><div id="routeSvg"></div><div id="cursorPos"></div></div>
       <div class="route-help">
@@ -579,7 +604,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
         <label class="field"><span>Start label</span><input data-rpath="startLabel" placeholder="Shore end"></label>
         <label class="field"><span>End label</span><input data-rpath="endLabel" placeholder="Vessel"></label>
       </div>
-      <div class="card">
+      <div class="card geo-card">
         <div class="card-h"><h2>Chart &amp; position</h2></div>
         <div class="small muted" style="margin-bottom:8px">Put the route start (first float) on a real position, then add a map, a chart image or a vector overlay underneath.</div>
         <div class="row" style="margin-bottom:8px"><input id="geoSearch" placeholder="Search a place, e.g. Kyleakin"><button class="btn sm" id="geoFind">Find</button></div>
@@ -744,8 +769,8 @@ const defaultAssign = (o = {}) => ({ id: uid(), vesselId: '', task: '', mode: 'f
 const defaultGeo    = () => ({ lat: null, lon: null, base: 'none', seamarks: false, opacity: 1, overlay: null });
 const defaultRoute  = () => ({ type: 'straight', points: null, view: null, bg: null, startLabel: '', endLabel: '', geo: defaultGeo() });
 const LIGHT_COLOURS = [['#ffd60a', 'Yellow'], ['#ffffff', 'White'], ['#ff3b30', 'Red'], ['#34c759', 'Green'], ['#3a86ff', 'Blue']];
-const LIGHT_AT = [['floats', 'Floats — every …'], ['ends', 'First and last float'], ['sections', 'Each section change'], ['bridles', 'Every bridle']];
-const defaultLight = (o = {}) => ({ id: uid(), name: 'LED buoy light', colour: '#ffd60a', character: 'Fl Y 5s', range: 2, at: 'floats', every: 100, ...o });
+const LIGHT_AT = [['floats', 'Floats — every n floats'], ['ends', 'First and last float'], ['sections', 'Each section change'], ['bridles', 'Every bridle']];
+const defaultLight = (o = {}) => ({ id: uid(), name: 'LED buoy light', colour: '#ffd60a', character: 'Fl Y 5s', range: 2, at: 'floats', everyN: 4, ...o });
 const defaultAttach = () => ({ ref: '', text: '', images: [] });
 const defaultSection = (o = {}) => ({ id: uid(), name: '', length: 1000, w: 34, spacing: 5, tails: 2, tailSpec: '', why: '', ...o });
 const SECTION_COLOURS = ['#38b2ac', '#e0864a', '#b67ad6', '#7fb24a', '#4f8fd6', '#d1a93a', '#d65f8a', '#5aa58f'];
@@ -786,7 +811,7 @@ function normaliseState(raw) {
       if (o.mode !== 'fixed' && o.mode !== 'flexible') o.mode = oldVesselMode[o.vesselId] === 'fixed' ? 'fixed' : 'flexible';
       return o;
     }) : [];
-    const lights = Array.isArray(p.lights) ? p.lights.map(l => defaultLight({ ...l, colour: safeColour(l.colour) })) : [];
+    const lights = Array.isArray(p.lights) ? p.lights.map(l => { const o = defaultLight({ ...l, colour: safeColour(l.colour) }); delete o.every; o.everyN = Math.max(1, Math.round(num(l.everyN, 4))); return o; }) : [];
     const attach = { ...defaultAttach(), ...(p.attach || {}) };
     attach.images = (attach.images || []).filter(x => safeImg(x?.img)).map(x => ({ img: x.img, caption: x.caption || '' }));
     const plan = { ...d, ...p, cable: { ...d.cable, ...(p.cable || {}) }, sections, route, vessels, lights, attach };
@@ -934,7 +959,7 @@ function calc(p) {
     const marks = [], P = r.positions, seen = new Set();
     const addFloat = k => { if (k >= 0 && k < P.length && !seen.has(k)) { seen.add(k); marks.push(P[k]); } };
     const nearest = m => { let lo = 0, hi = P.length - 1; while (hi - lo > 1) { const c = (lo + hi) >> 1; if (P[c] <= m) lo = c; else hi = c; } return Math.abs(P[hi] - m) < Math.abs(P[lo] - m) ? hi : lo; };
-    if (L.at === 'floats' && num(L.every) > 0) for (let d = 0; d <= r.Lf + 1e-6 && marks.length < 5000; d += num(L.every)) addFloat(nearest(so + d));
+    if (L.at === 'floats') { const N = Math.max(1, Math.round(num(L.everyN, 1))); for (let k = 0; k < P.length; k += N) addFloat(k); }
     else if (L.at === 'ends') { addFloat(0); addFloat(P.length - 1); }
     else if (L.at === 'sections') { r.secs.forEach(s => addFloat(s.first)); addFloat(P.length - 1); }
     else if (L.at === 'bridles') r.bridles.forEach(b => marks.push(b.mark));
@@ -1281,7 +1306,6 @@ function overviewSVG(p, r, pal = PAL_SCREEN) {
   o += `<line x1="${x(r.so + r.Lf)}" y1="${y0 - 26}" x2="${x(r.so + r.Lf)}" y2="${y0 + 4}" style="stroke:${pal.text};stroke-width:1"/>`;
   if (r.so > 0 && x(r.so) - x(0) > 50) o += `<text x="${(x(0) + x(r.so)) / 2}" y="${y0 - 10}" text-anchor="middle" style="fill:${pal.muted};font-size:10px">no floats</text>`;
   if (r.eo > 0 && x(L) - x(r.so + r.Lf) > 50) o += `<text x="${(x(r.so + r.Lf) + x(L)) / 2}" y="${y0 - 10}" text-anchor="middle" style="fill:${pal.muted};font-size:10px">no floats</text>`;
-  (r.lights || []).forEach((l, li) => l.marks.forEach(m => { o += `<circle data-hit="lights" cx="${x(m)}" cy="${y0 - 30 - li * 0}" r="3.2" style="fill:${l.colour};stroke:${pal.stroke};stroke-width:.8"><title>${esc(l.L.name)} at ${fmtM(m)} m</title></circle>`; }));
   r.bridles.forEach(b => { o += `<path data-hit="bridles" d="M${x(b.mark)} ${y0 + 4} l6 6 l-6 6 l-6 -6z" style="fill:${pal.bridle}"><title>Bridle at ${fmtM(b.mark)} m</title></path>`; });
   if (r.bridles.length && r.bridles.length <= 12) r.bridles.forEach(b => { o += `<text x="${x(b.mark)}" y="${y0 + 30}" text-anchor="middle" style="fill:${pal.bridle};font-size:10px;font-weight:700">${fmtInt(b.mark)}</text>`; });
   else if (r.bridles.length) o += `<text x="${x(r.bridles[0].mark) + 10}" y="${y0 + 30}" style="fill:${pal.bridle};font-size:10.5px;font-weight:700">◆ ${fmtInt(r.bridles.length)} bridles every ${fmtM(num(p.bridleInterval))} m</text>`;
@@ -1371,7 +1395,7 @@ function routeSVG(p, r, pal, opt = {}) {
   o += endLabel(A, U[Math.min(U.length - 1, 3)], Z, `${p.route.startLabel || 'Start'} · ${fmtM(r.so)} m`);
   o += endLabel(Z, U[Math.max(0, U.length - 4)], A, `${p.route.endLabel || 'End'} · ${fmtM(Math.round(r.so + info.length))} m`);
   // lights along the route
-  (r.lights || []).forEach(l => l.marks.forEach(m => {
+  if (p.route.showLights) (r.lights || []).forEach(l => l.marks.forEach(m => {
     const s = m - r.so; if (s < -1e-6 || s > info.length + 1) return;
     const q = info.at(Math.max(0, s)), rr = fs * 0.26;
     o += `<circle cx="${q[0]}" cy="${q[1]}" r="${rr * 2.2}" style="fill:${l.colour};opacity:.28"/><circle cx="${q[0]}" cy="${q[1]}" r="${rr}" style="fill:${l.colour};stroke:${pal.stroke};stroke-width:1" ${sw}/>`;
@@ -1507,6 +1531,7 @@ function updatePlannerOutputs() {
   });
   $('#results').innerHTML = resultsHTML(p, r);
   $('#kpis').innerHTML = kpisHTML(p, r);
+  if (!$('#guide').hidden) renderGuide();
   const warns = r.msgs.filter(m => m.level === 'warn');
   $('#alerts').innerHTML = msgsHTML(r.msgs.filter(m => m.level === 'bad')) +
     (warns.length ? `<details class="warnbox" ${PL.warnOpen ? 'open' : ''}><summary>⚠ ${warns.length} thing${warns.length > 1 ? 's' : ''} to check</summary>${msgsHTML(warns)}</details>` : '');
@@ -1584,9 +1609,9 @@ function renderLights() {
       <label>Light<input data-lk="name" value="${esc(L.name)}" placeholder="e.g. Sealite SL-60"></label>
       <label>Colour<select data-lk="colour">${LIGHT_COLOURS.map(([c, n]) => `<option value="${c}" ${c === L.colour ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label>Character<input data-lk="character" value="${esc(L.character)}" placeholder="Fl Y 5s"></label>
-      <label>Range<div class="unit-wrap"><input data-lk="range" type="number" min="0" step="0.5" value="${esc(L.range)}"><i>nm</i></div></label>
+      <label title="Nominal visible range from the light's data sheet">Visible range<div class="unit-wrap"><input data-lk="range" type="number" min="0" step="0.5" value="${esc(L.range)}"><i>nm</i></div></label>
       <label>Fitted on<select data-lk="at">${LIGHT_AT.map(([v, n]) => `<option value="${v}" ${v === L.at ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-      <label>Every<div class="unit-wrap"><input data-lk="every" type="number" min="0" step="10" value="${esc(L.every)}" ${L.at === 'floats' ? '' : 'disabled'}><i>m</i></div></label>
+      <label>Every<div class="unit-wrap"><input data-lk="everyN" type="number" min="1" step="1" value="${esc(L.everyN)}" ${L.at === 'floats' ? '' : 'disabled'}><i style="right:6px">floats</i></div></label>
       <div class="row"><span class="cnt" data-out="cnt"></span><button class="btn sm danger" data-lact="del">✕</button></div>
     </div>`).join('');
 }
@@ -1636,6 +1661,7 @@ function openVesselDialog(aid) {
       <label class="field"><span>Working radius<em>flexible only</em></span><div class="unit-wrap"><input name="a_radius" type="number" min="0" step="10" value="${esc(a.radius)}"><i>m</i></div></label></div>
     <div class="vd-sec"><h4>Tow connection &amp; heading</h4>
       <label class="field wide"><span>Connected to</span><select name="a_link">${linkOpts}</select></label>
+      ${(r.bridles || []).length ? '' : '<div class="msgs" style="margin:-4px 0 10px"><li class="info" style="list-style:none">No bridles on this plan yet, so only the cable ends are listed. Choose a bridle type and interval in Planner → Bridles and each bridle (B1, B2…) appears here.</li></div>'}
       <label class="field"><span>Tow point on vessel</span><select name="a_conn">${opt('stern', 'Stern — vessel faces away', a.conn)}${opt('bow', 'Bow — vessel faces the cable', a.conn)}</select></label>
       <label class="field"><span>Tow line length<em>connection to vessel</em></span><div class="unit-wrap"><input name="a_dist" type="number" min="0" step="5" value="${esc(a.dist)}"><i>m</i></div></label>
       <label class="field"><span>Heading<em>0° = up the page (north)</em></span><div class="unit-wrap"><input name="a_heading" type="number" step="5" value="${esc(Math.round(num(a.heading)))}"><i>°</i></div></label>
@@ -1701,13 +1727,18 @@ function ensurePoints(p) {
   if (!Array.isArray(p.route.points)) p.route.points = routeControlPoints(p, calc(p).Lf).map(q => q.slice());
 }
 function pushUndo(p) { RT.undo.push(JSON.stringify({ points: p.route.points, type: p.route.type })); if (RT.undo.length > 60) RT.undo.shift(); }
-function blankRouteSVG(view, pts) {
-  const v = view, g = niceStep(v.w / 10), sw = 'vector-effect="non-scaling-stroke"';
+function blankRouteSVG(view, pts, p) {
+  const v = view, g = niceStep(v.w / 10), sw = 'vector-effect="non-scaling-stroke"', fs = v.w / 60;
   let o = `<svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+  const tiles = tilesSVG(v, p.route.geo, $('#routeSvg').clientWidth || 1000); o += tiles.svg;
+  const bg = p.route.bg;
+  if (bg && safeImg(bg.img)) o += `<image href="${bg.img}" x="${bg.x}" y="${bg.y}" width="${bg.widthM}" height="${bg.heightM || bg.widthM * bg.aspect}" preserveAspectRatio="none" opacity="${clamp(num(bg.opacity, 0.6), 0.05, 1)}"/>`;
+  o += overlaySVG(p.route.geo, PAL_SCREEN, fs);
   for (let gx = Math.ceil(v.x / g) * g; gx <= v.x + v.w; gx += g) o += `<line x1="${gx}" y1="${v.y}" x2="${gx}" y2="${v.y + v.h}" style="stroke:var(--grid)" ${sw}/>`;
   for (let gy = Math.ceil(v.y / g) * g; gy <= v.y + v.h; gy += g) o += `<line x1="${v.x}" y1="${gy}" x2="${v.x + v.w}" y2="${gy}" style="stroke:var(--grid)" ${sw}/>`;
-  pts.forEach((q, i) => o += `<circle class="handle" data-i="${i}" cx="${q[0]}" cy="${q[1]}" r="${v.w / 160}" style="fill:var(--accent)"/>`);
-  o += `<text x="${v.x + v.w / 2}" y="${v.y + v.h / 2}" text-anchor="middle" style="fill:var(--muted);font-size:${v.w / 45}px">Click to place the route points, starting from the first float</text>`;
+  pts.forEach((q, i) => o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.9}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.38}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`);
+  o += `<text x="${v.x + v.w / 2}" y="${v.y + fs * 2}" text-anchor="middle" style="fill:var(--text);font-size:${fs * 1.1}px;font-weight:700;paint-order:stroke;stroke:var(--surface-2);stroke-width:${fs * 0.25}px">Click to place the route points, starting from the first float</text>`;
+  if (tiles.credit) o += `<text x="${v.x + v.w - fs * 0.4}" y="${v.y + v.h - fs * 0.4}" text-anchor="end" style="font-size:${fs * 0.65}px;fill:var(--text)">${esc(tiles.credit)}</text>`;
   return o + '</svg>';
 }
 function renderRoute() {
@@ -1717,7 +1748,7 @@ function renderRoute() {
   if (Array.isArray(p.route.points) && p.route.points.length < 2) {
     const Lf = r.Lf > 0 ? r.Lf : 100, a = routeAspect();
     if (!RT.view) RT.view = { x: -Lf * 0.1, y: -Lf * 0.6 / a, w: Lf * 1.2, h: Lf * 1.2 / a };
-    wrap.innerHTML = blankRouteSVG(RT.view, p.route.points);
+    wrap.innerHTML = blankRouteSVG(RT.view, p.route.points, p);
   } else if (!r.valid || !r.route) {
     wrap.innerHTML = placeholderSVG('Fix the planner inputs first — see the Planner tab', 1000, 500);
   } else {
@@ -1729,6 +1760,8 @@ function renderRoute() {
   $('#rtModeAdd').setAttribute('aria-pressed', RT.mode === 'add');
   $('#rtModeMove').setAttribute('aria-pressed', RT.mode === 'move');
   $('#rtUndo').disabled = !RT.undo.length;
+  $('#rtLights').setAttribute('aria-pressed', !!p.route.showLights);
+  const g0 = p.route.geo; $('#rtClearBg').disabled = !(p.route.bg || (g0.overlay && g0.overlay.length) || g0.base !== 'none' || g0.seamarks);
   renderRouteStats(p, r);
   renderRouteVessels(p, r);
   $('#placeBanner').textContent = RT.placing ? `Click on the map to place ${vesselById(p.vessels.find(a => a.id === RT.placing)?.vesselId)?.name || 'the vessel'} (Esc to cancel)` : '';
@@ -1948,6 +1981,12 @@ function initRouteEditor() {
     RT.view = null; renderRoute(); commitRoute(); toast(`Shape scaled × ${fmt(k, 3)}`);
   };
   $('#rtFitView').onclick = () => { RT.view = null; renderRoute(); commitRoute(); };
+  $('#rtLights').onclick = () => { const p = activePlan(); p.route.showLights = !p.route.showLights; commitRoute(); };
+  $('#rtClearBg').onclick = () => {
+    const p = activePlan(), g = p.route.geo;
+    if (!confirm('Remove the map, chart image and vector overlay? The route, vessels and position stay.')) return;
+    p.route.bg = null; g.overlay = null; g.base = 'none'; g.seamarks = false; commitRoute(); toast('Background cleared');
+  };
   $('#rtClear').onclick = () => {
     const p = activePlan(); ensurePoints(p); pushUndo(p);
     p.route.points = []; p.route.type = 'custom'; RT.mode = 'add'; RT.view = null; commitRoute();
@@ -2228,7 +2267,7 @@ function sheetPagesFor(p) {
       <tbody>${secRows}${r.secs.length > 1 ? `<tr class="tot"><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td>${fmtInt(r.n)}</td><td>${fmtInt(r.tails)}</td><td colspan="2"></td></tr>` : ''}</tbody></table>
     ${r.lights.length ? `<table class="sh-lights"><thead><tr><th>Light</th><th>Character</th><th>Range</th><th>Fitted on</th><th>Number</th></tr></thead><tbody>
       ${r.lights.map(l => `<tr><td><span class="lc" style="background:${l.colour}"></span><b>${esc(l.L.name)}</b></td><td><b>${esc(l.L.character)}</b></td><td>${fmt(num(l.L.range), 1)} nm</td>
-        <td>${l.L.at === 'floats' ? `a float every ${fmtM(num(l.L.every))} m` : l.L.at === 'ends' ? 'first and last float' : l.L.at === 'sections' ? 'first float of each section + last float' : 'every bridle'}</td><td><b>${fmtInt(l.marks.length)}</b></td></tr>`).join('')}</tbody></table>` : ''}
+        <td>${l.L.at === 'floats' ? (num(l.L.everyN) <= 1 ? 'every float' : `every ${fmtInt(num(l.L.everyN))} floats`) : l.L.at === 'ends' ? 'first and last float' : l.L.at === 'sections' ? 'first float of each section + last float' : 'every bridle'}</td><td><b>${fmtInt(l.marks.length)}</b></td></tr>`).join('')}</tbody></table>` : ''}
     <div class="sh-items">
       <div class="sh-item">${ph(f.image, floatIconSVG(f))}<div><h5>Float — same type throughout</h5><div class="nm">${esc(f.name)}</div>
         <div class="ln"><span class="sw" style="background:${safeColour(f.colour)}"></span>${f.shape === 'round' ? 'Round' : 'Rectangular'} · ${fmt(num(f.length), 2)} × ${fmt(num(f.dia), 2)} m</div>
@@ -2294,6 +2333,55 @@ function renderSheet() {
   $('#sheetRoot').innerHTML = html;
 }
 
+/* ---------------- setup guide & demo ---------------- */
+const GUIDE_KEY = 'floatSpacer.guide';
+function guideSteps(p, r) {
+  const f = r.f, g = p.route.geo;
+  return [
+    { t: 'Cable and sections', d: 'Cable length, first float mark, then a section for each weight (bare, CPS…).', done: r.valid && p.sections.some(s => s.name), go: () => { showTab('planner'); openPanel('sections'); } },
+    { t: 'Float type', d: 'Pick or create the float, with its net buoyancy and a photo.', done: !!f && f.name !== 'Example float', go: () => { showTab('planner'); openPanel('float'); } },
+    { t: 'Check spacing', d: 'Use the cascade-safe spacing on each section, adjust tails per float.', done: r.valid && r.secs.every(s => s.X <= s.xSafe + 1e-9), go: () => { showTab('planner'); openPanel('sections'); } },
+    { t: 'Bridles', d: 'Choose the bridle type and interval. Do this before adding vessels so they can tow from B1, B2…', done: !!r.b, opt: true, go: () => { showTab('planner'); openPanel('bridles'); } },
+    { t: 'Lights', d: 'Add a light rule for the floats (e.g. every 4 floats) and one for the bridles.', done: p.lights.length > 0, opt: true, go: () => { showTab('planner'); openPanel('lights'); } },
+    { t: 'Route and position', d: 'Draw straight, omega or your own shape; set the start position and map.', done: p.route.type !== 'straight' || hasGeo(g), go: () => showTab('route') },
+    { t: 'Support vessels', d: 'Add each vessel with its job, then connect it to a bridle or cable end.', done: p.vessels.length > 0, opt: true, go: () => { showTab('planner'); openPanel('vessels'); } },
+    { t: 'Attachment detail', d: 'Paste the procedure reference, steps and photos for the deck crew.', done: !!(p.attach.text || p.attach.images.length), opt: true, go: () => { showTab('planner'); openPanel('attach'); } },
+    { t: 'Print the deck sheet', d: 'Check the pages, fill the project details, print or save as PDF.', done: false, go: () => showTab('sheet') }
+  ];
+}
+function renderGuide() {
+  const el = $('#guide'), hidden = localStorage.getItem(GUIDE_KEY) === 'hidden';
+  el.hidden = hidden; $('#btnGuide').setAttribute('aria-pressed', !hidden);
+  if (hidden) return;
+  const p = activePlan(), r = calc(p), steps = guideSteps(p, r);
+  const done = steps.filter(s => s.done).length, next = steps.findIndex(s => !s.done && !s.opt);
+  el.innerHTML = `<div class="card-h"><h2>Setup guide</h2><span class="small muted">${done} of ${steps.length} done — work left to right</span><div class="prog"><i style="width:${done / steps.length * 100}%"></i></div>
+      <button class="btn sm" id="guideDemo" style="margin-left:auto">Load demo</button><button class="btn sm" id="guideHide" title="Hide the guide (reopen from the Guide button)">Hide</button></div>
+    <div class="gsteps">${steps.map((s, i) => `<button class="gstep ${s.done ? 'done' : ''} ${i === next ? 'next' : ''} ${s.opt ? 'opt' : ''}" data-gi="${i}"><span class="n">${s.done ? '✓' : i + 1}</span><b>${s.t}</b><span>${s.d}</span></button>`).join('')}</div>`;
+  el._steps = steps;
+}
+function loadDemo() {
+  const fl = { ...defaultFloat(), name: 'Demo — 300 kg block float', netB: 300, length: 0.8, dia: 0.6, colour: '#ffd60a', attach: 'Float on top of cable, tails through both eyes' };
+  const br = { ...defaultBridle(), name: 'Demo — 10 t two-leg tow bridle', swl: 10, notes: '2 × 5 m 24 mm legs to 13.5 t shackle, lashed either side of the span' };
+  const v1 = { ...defaultVessel(), name: 'Demo Tug Mars', type: 'Tug', callSign: '2ABC4', power: 45, powerUnit: 't BP', length: 32 };
+  const v2 = { ...defaultVessel(), name: 'Demo Multicat', type: 'Multicat', callSign: 'MCX9', power: 20, powerUnit: 't BP', length: 26 };
+  S.floats.push(fl); S.bridles.push(br); S.vessels.push(v1, v2);
+  const p = { ...defaultPlan(fl.id), name: 'Demo — second end omega', cable: { desc: '220 kV export cable (demo)', length: 1500, od: 150 }, startOffset: 50,
+    sections: [defaultSection({ name: 'Bare cable', length: 900, w: 34, spacing: 5.75, tails: 2, tailSpec: '12 mm polysteel, 3 m', why: 'Cascade-safe spacing for bare cable' }),
+               defaultSection({ name: 'CPS fitted', length: 550, w: 43, spacing: 4.5, tails: 3, tailSpec: '12 mm polysteel, 3 m', why: 'CPS adds 9 kg/m — closer spacing, third tail stops the float rolling' })],
+    bridleId: br.id, bridleInterval: 200, bridleFirst: 100, sparesPct: 5,
+    lights: [defaultLight({ name: 'LED buoy light', character: 'Fl Y 5s', range: 2, at: 'floats', everyN: 10 }), defaultLight({ name: 'Bridle light', character: 'Fl Y 2.5s', range: 3, at: 'bridles' })],
+    attach: { ref: 'Demo procedure PRC-000 §7', text: '1. Sit the float on top of the cable.\n2. Pass each tail through both float eyes.\n3. Two round turns and two half hitches on the cable.\n4. Fit the light on the marked floats before launch.', images: [] },
+    remarks: 'Demo plan — replace with your own data.' };
+  p.route = { ...defaultRoute(), type: 'omega', startLabel: 'Shore end', endLabel: 'Second end', geo: { ...defaultGeo(), lat: 57.275, lon: -5.72, base: 'osm' } };
+  S.plans.push(p); S.activePlanId = p.id;
+  const r = calc(p); p.route.points = omegaPoints(r.Lf, 20, 30);
+  p.vessels = [defaultAssign({ vesselId: v1.id, task: 'Hold the bight at B3', mode: 'fixed', link: 'bridle', bridle: 2, conn: 'stern', dist: 120, heading: 240 }),
+               defaultAssign({ vesselId: v2.id, task: 'Hold the cable end', mode: 'flexible', radius: 40, link: 'end', conn: 'bow', dist: 60, heading: 180 })];
+  saveNow(); RT.planId = null; renderPlanSelect(); showTab('planner');
+  toast('Demo plan added — switch plans from the top bar');
+}
+
 /* ---------------- boot ---------------- */
 function showTab(name) {
   if (!$('#tab-' + name)) name = 'planner';
@@ -2303,7 +2391,7 @@ function showTab(name) {
   renderTab(name);
 }
 function renderTab(name) {
-  ({ planner: () => { fillPlannerInputs(); updatePlannerOutputs(); }, route: renderRoute, floats: renderFloats,
+  ({ planner: () => { fillPlannerInputs(); updatePlannerOutputs(); renderGuide(); }, route: renderRoute, floats: renderFloats,
      bridles: renderBridles, vessels: renderVessels, sheet: renderSheet, plans: renderPlans })[name]?.();
 }
 const currentTab = () => ($('.tab.active')?.id || 'tab-planner').slice(4);
@@ -2354,6 +2442,13 @@ function init() {
   $('#panelTabs').addEventListener('click', e => { const b = e.target.closest('[data-panel]'); if (b) openPanel(b.dataset.panel, false); });
   $('#kpis').addEventListener('click', e => { const b = e.target.closest('[data-panel-go]'); if (b) openPanel(b.dataset.panelGo); });
   $('#alerts').addEventListener('toggle', e => { PL.warnOpen = e.target.open; }, true);
+  $('#btnGuide').onclick = () => { localStorage.setItem(GUIDE_KEY, localStorage.getItem(GUIDE_KEY) === 'hidden' ? 'shown' : 'hidden'); showTab('planner'); };
+  $('#btnDemo').onclick = loadDemo;
+  $('#guide').addEventListener('click', e => {
+    if (e.target.closest('#guideHide')) { localStorage.setItem(GUIDE_KEY, 'hidden'); renderGuide(); return; }
+    if (e.target.closest('#guideDemo')) return loadDemo();
+    const b = e.target.closest('[data-gi]'); if (b) $('#guide')._steps[+b.dataset.gi].go();
+  });
   $('#btnAllData').onclick = () => { PL.all = !PL.all; applyPanels(); };
   applyPanels();
   initRouteEditor();
@@ -2380,7 +2475,7 @@ function init() {
   $('#lightList').addEventListener('input', e => {
     const row = e.target.closest('[data-li]'), k = e.target.dataset.lk; if (!row || !k) return;
     const L = activePlan().lights[+row.dataset.li];
-    L[k] = ['range', 'every'].includes(k) ? num(e.target.value) : e.target.value;
+    L[k] = k === 'range' ? num(e.target.value) : k === 'everyN' ? Math.max(1, Math.round(num(e.target.value, 1))) : e.target.value;
     save(); if (k === 'at') renderLights(); updatePlannerOutputs();
   });
   $('#lightList').addEventListener('click', e => { const b = e.target.closest('[data-lact]'); if (!b) return; activePlan().lights.splice(+b.closest('[data-li]').dataset.li, 1); save(); renderLights(); updatePlannerOutputs(); });
