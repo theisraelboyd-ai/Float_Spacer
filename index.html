@@ -445,13 +445,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .lp-svg{flex:1;min-height:0;display:flex;padding:1mm 2mm}
 .lp-svg svg{width:100%;height:100%}
 
-.sh-vt{width:100%;border-collapse:collapse;font-size:8.5pt}
-.sh-vt th{background:#000;color:#fff;font-size:7pt;text-transform:uppercase;letter-spacing:.05em;padding:1mm 1.5mm;text-align:left}
-.sh-vt td{border:1px solid #000;padding:1.2mm 1.5mm;vertical-align:top;line-height:1.3}
-.sh-vt td:first-child{width:31%}
-.sh-vt td:last-child{width:34%}
-.sh-vt .vn{font-size:10.5pt}
-.sh-vt .wl{display:block;border-bottom:1px dotted #555;height:5.5mm}
+.sh-vt{width:100%;border-collapse:collapse;font-size:10pt}
+.sh-vt th{background:#000;color:#fff;font-size:8pt;text-transform:uppercase;letter-spacing:.05em;padding:1mm 1.5mm;text-align:left}
+.sh-vt td{border:1.5px solid #000;padding:1.5mm 2.5mm;vertical-align:top;line-height:1.35}
+.sh-vt td:nth-child(1){width:25%}.sh-vt td:nth-child(2){width:22%}.sh-vt td:nth-child(3){width:20%}
+.sh-vt .vn{font-size:13pt}
+.sh-vt .wl{display:block;border-bottom:1px dotted #555;height:6.5mm}
 
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:650;font-size:13px;transition:.25s;z-index:50;pointer-events:none}
@@ -2661,30 +2660,31 @@ function sheetPagesFor(p) {
       <table class="sh-secs"><thead><tr><th>Bridle</th><th>Cable mark</th><th>Fit</th><th>Section</th><th>Towed by</th><th>Note</th></tr></thead><tbody>${brRows.slice(i, i + 18).join('')}</tbody></table>`);
   }
 
-  pages.push(`${head('Layout & support vessels — mark up during the operation')}
-    <div class="sh-two">
-      <div class="sh-box"><h5>Layout plan — floated length${p.route.type === 'straight' ? ' (straight)' : ''}${hasGeo(p.route.geo) ? ` · start ${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}` : ''}</h5><div class="route-svg">${routeSVG(p, r, PAL_PRINT, { print: true, aspect: 1.55 })}</div></div>
-      <div class="sh-box"><h5>Support vessels</h5><div class="in" style="padding:1.5mm 2mm">${vesselTableHTML(p, r)}</div></div>
-    </div>
-    <div class="sh-sign"><div>Prepared<span>Name / signature / date</span></div><div>Deck supervisor — briefed<span>Name / signature / date</span></div><div>Client rep / OCM<span>Name / signature / date</span></div></div>`);
+  pages.push(`${head('Layout plan')}
+    <div class="sh-box" style="flex:1;min-height:0"><h5>Layout plan — floated length${p.route.type === 'straight' ? ' (straight)' : ''}${hasGeo(p.route.geo) ? ` · start ${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}` : ''}</h5><div class="route-svg">${routeSVG(p, r, PAL_PRINT, { print: true, aspect: 1.95 })}</div></div>`);
+  const vrows = vesselRows(p, r), VPER = 7;
+  for (let i = 0; i < Math.max(1, vrows.length); i += VPER) {
+    const last = i + VPER >= vrows.length;
+    pages.push(`${head('Support vessels — mark up during the operation')}
+      <div style="flex:1">${vrows.length ? `<table class="sh-vt"><thead><tr><th>Vessel</th><th>Planned job</th><th>Tow / position</th><th>Actual position / time — write in</th></tr></thead><tbody>${vrows.slice(i, i + VPER).join('')}</tbody></table>` : '<p>No support vessels set up.</p>'}</div>
+      ${last ? `<div class="sh-sign"><div>Prepared<span>Name / signature / date</span></div><div>Deck supervisor — briefed<span>Name / signature / date</span></div><div>Client rep / OCM<span>Name / signature / date</span></div></div>` : ''}`);
+  }
   return pages;
 }
 // Every vessel in the library: planned ones with their job, the rest listed with blank space to write on.
-function vesselTableHTML(p, r) {
+function vesselRows(p, r) {
   const planned = p.vessels.map(a => ({ a, v: vesselById(a.vesselId) })).filter(x => x.v);
   const others = S.vessels.filter(v => !planned.some(x => x.v.id === v.id)).map(v => ({ a: null, v }));
-  const rows = [...planned, ...others];
-  if (!rows.length) return '<p style="font-size:9pt">No support vessels set up.</p>';
-  const blank = '<span class="wl"></span>';
-  return `<table class="sh-vt"><thead><tr><th>Vessel</th><th>Planned job</th><th>Position / time — write in</th></tr></thead><tbody>
-    ${rows.map(({ a, v }) => {
-      let job = blank + blank;
-      if (a) {
-        const ps = vesselPose(a, r), g = p.route.geo, ll = ps && hasGeo(g) ? `<br>${fmtLatLon(...worldToGeo(ps.x, ps.y, g))}` : '';
-        job = `${a.task ? `<b>${esc(a.task)}</b><br>` : ''}${a.mode === 'fixed' ? `Fixed, hold ${String(Math.round(((num(a.heading) % 360) + 360) % 360)).padStart(3, '0')}°` : `Flexible ±${fmtM(num(a.radius))} m`}${a.link !== 'none' ? `<br>${esc(linkLabel(a, r))}, ${fmtM(num(a.dist))} m off ${a.conn}` : ''}${ll}`;
-      }
-      return `<tr><td><b class="vn">${esc(v.name)}</b><br>${esc(v.callSign || '—')} · ${esc(v.type)}<br>${fmtM(num(v.power))} ${esc(v.powerUnit)}${a ? '' : '<br><i>not assigned</i>'}</td><td>${job}</td><td>${blank}${blank}${blank}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  const blank = n => '<span class="wl"></span>'.repeat(n);
+  return [...planned, ...others].map(({ a, v }) => {
+    let job = blank(2), tow = blank(2);
+    if (a) {
+      const ps = vesselPose(a, r), g = p.route.geo, ll = ps && hasGeo(g) ? `<br>${fmtLatLon(...worldToGeo(ps.x, ps.y, g))}` : '';
+      job = `${a.task ? `<b>${esc(a.task)}</b><br>` : ''}${a.mode === 'fixed' ? `Fixed, hold ${String(Math.round(((num(a.heading) % 360) + 360) % 360)).padStart(3, '0')}°` : `Flexible ±${fmtM(num(a.radius))} m`}`;
+      tow = `${a.link !== 'none' ? `${esc(linkLabel(a, r))}, ${fmtM(num(a.dist))} m off ${a.conn}` : 'Not connected'}${ll}`;
+    }
+    return `<tr><td><b class="vn">${esc(v.name)}</b><br>${esc(v.callSign || '—')} · ${esc(v.type)} · ${fmtM(num(v.power))} ${esc(v.powerUnit)}${a ? '' : '<br><i>not assigned</i>'}</td><td>${job}</td><td>${tow}</td><td>${blank(3)}</td></tr>`;
+  });
 }
 function renderSheet() {
   const plans = $('#sheetScope').value === 'all' ? S.plans : [activePlan()];
