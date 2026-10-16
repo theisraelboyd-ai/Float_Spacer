@@ -452,6 +452,19 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .sh-vt .vn{font-size:13pt}
 .sh-vt .wl{display:block;border-bottom:1px dotted #555;height:6.5mm}
 
+.sh-map{display:grid;grid-template-columns:1fr 62mm;gap:3mm;flex:1;min-height:0}
+.sh-legend .in{font-size:9.5pt;line-height:1.3}
+.lg-row{display:flex;gap:2.5mm;align-items:center;padding:1.2mm 0;border-bottom:1px solid #ddd}
+.lg-row i{flex:none;display:inline-block}
+.lg-line{width:8mm;height:2mm;border-radius:1mm}
+.lg-dia{width:3mm;height:3mm;background:#7a2fc9;transform:rotate(45deg);margin:0 2.5mm}
+.lg-ves{width:6mm;height:3mm;background:#f97316;clip-path:polygon(0 0,70% 0,100% 50%,70% 100%,0 100%);margin:0 1mm}
+.lg-lt{width:3.5mm;height:3.5mm;border-radius:50%;border:1px solid #000;margin:0 2.2mm}
+.lg-se{width:8mm;height:3mm;background:radial-gradient(circle at 25% 50%,#fff 30%,#000 32%,#000 45%,transparent 47%),linear-gradient(90deg,transparent 60%,#000 60%,#000 90%,transparent 90%)}
+.lg-txt{font-style:normal;font-weight:900;width:8mm;text-align:center}
+.lg-grid{width:3.5mm;height:3.5mm;border:1.2px solid #000;margin:0 2.2mm}
+.lg-pos{margin-top:3mm;font-size:9pt}
+
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:650;font-size:13px;transition:.25s;z-index:50;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -562,7 +575,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
     <div class="card panel" data-panel="sections">
       <div class="card-h"><h2>Sections · spacing · tails</h2><span class="small muted">each section sets its float, weight and spacing · tails are cut to the spacing</span>
-        <label class="row small" style="margin-left:auto;gap:6px;white-space:nowrap" title="Extra length added to every tail for knots or eyes">Tail allowance <div class="unit-wrap" style="width:90px"><input data-path="tailAllowance" data-num type="number" min="0" step="0.1"><i>m</i></div></label>
+        <label class="row small" style="margin-left:auto;gap:6px;white-space:nowrap" title="Extra length added to every tail for knots, eyes or splices">Tail allowance <div class="unit-wrap" style="width:90px"><input data-path="tailAllowance" data-num type="number" min="0" step="0.1"><i>m</i></div></label>
+        <label class="row small" style="gap:6px;white-space:nowrap" title="Contingency tails to prepare, for each cut length">Tail spares <input data-path="tailSpareVal" data-num type="number" min="0" step="1" style="width:70px"><select data-path="tailSpareMode" style="width:auto"><option value="pct">% of each length</option><option value="qty">extra per length</option></select></label>
         <button class="btn sm primary" id="btnAddSection">+ Add section</button></div>
       <div id="sections"></div>
     </div>
@@ -887,7 +901,7 @@ const defaultPlan = (floatId = '') => ({
   sections: [defaultSection({ name: 'Bare cable' })],
   floatId, sf: 1.2, startOffset: 0, sparesPct: 5,
   bridleId: '', bridleInterval: 200, bridleFirst: 100,
-  bridleMode: 'auto', bridleList: [], tailAllowance: 0,
+  bridleMode: 'auto', bridleList: [], tailAllowance: 0, tailSpareMode: 'pct', tailSpareVal: 5,
   remarks: '', route: defaultRoute(), vessels: [], lights: [], attach: defaultAttach(), tailDetail: { text: '', images: [] }
 });
 const defaultProject = () => ({ name: '', vessel: '', client: '', docNo: '', rev: 'A', date: today(), preparedBy: '', approvedBy: '' });
@@ -1072,7 +1086,9 @@ function calc(p) {
   r.tailCut = [...cutMap.values()].sort((a, b) => b.len - a.len);
   r.tails = r.secs.reduce((t, s) => t + s.tails, 0);
   r.ropeLen = r.secs.reduce((t, s) => t + s.ropeLen, 0);
-  r.tailSpares = Math.ceil(r.tails * Math.max(0, num(p.sparesPct)) / 100);
+  const tsv = Math.max(0, num(p.tailSpareVal, 5));
+  r.tailSpare = n => p.tailSpareMode === 'qty' ? Math.round(tsv) : Math.ceil(n * tsv / 100);   // per cut length
+  r.tailSpares = r.tailCut.reduce((a, c) => a + r.tailSpare(c.n), 0);
   r.utilMax = Math.max(...r.secs.map(s => s.util));
   r.totalBuoy = buoy; r.cableWeight = wsum; r.reserve = buoy / wsum;
   const worst = r.secs.reduce((m, s) => s.util > m.util ? s : m, r.secs[0]);
@@ -1500,8 +1516,8 @@ function overviewSVG(p, r, pal = PAL_SCREEN) {
   return o + '</svg>';
 }
 
-function fitView(info, bg, aspect) {
-  let xs = info.poly.map(q => q[0]), ys = info.poly.map(q => q[1]);
+function fitView(info, bg, aspect, extra = []) {
+  let xs = info.poly.map(q => q[0]).concat(extra.map(q => q[0])), ys = info.poly.map(q => q[1]).concat(extra.map(q => q[1]));
   if (bg) { xs.push(bg.x, bg.x + bg.widthM); ys.push(bg.y, bg.y + (bg.heightM || bg.widthM * bg.aspect)); }
   let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
   let w = Math.max(20, x1 - x0), h = Math.max(20, y1 - y0);
@@ -1515,8 +1531,8 @@ function fitView(info, bg, aspect) {
 function routeSVG(p, r, pal, opt = {}) {
   const info = r.route;
   if (!r.valid || !info) return placeholderSVG('Fix the planner inputs to draw the route', 1000, 500, pal);
-  let v = opt.view || fitView(info, p.route.bg, opt.aspect || 2);
-  if (opt.print && !opt.view) v = { x: v.x, y: v.y - v.h * 0.15, w: v.w * 1.3, h: v.h * 1.3 };   // room on the right for the legend
+  let v = opt.view || fitView(info, p.route.bg, opt.aspect || 2, vesselExtents(p, r));
+  if (opt.print && !opt.view && !opt.noLegend) v = { x: v.x, y: v.y - v.h * 0.15, w: v.w * 1.3, h: v.h * 1.3 };   // room on the right for the legend
   // text keeps the same size on screen at any zoom (≈12.5 px), so it never swamps a small route
   const fs = opt.print ? v.w / 72 : v.w * 12.5 / Math.max(300, opt.pxWidth || 1000), sw = 'vector-effect="non-scaling-stroke"';
   const tx = (x, y, t, st = '', anchor = 'start', size = 1) => `<text x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${fs * size}px;paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * size * 0.24}px;stroke-linejoin:round;${st}">${esc(t)}</text>`;
@@ -1599,6 +1615,8 @@ function routeSVG(p, r, pal, opt = {}) {
   if (lightsOn) r.lights.filter(l => l.marks.length).forEach(l => rows.push({ k: 'lt', c: l.colour, t: `${l.L.character || l.L.name} · ${fmtInt(l.marks.length)} lights` }));
   rows.push({ k: 'se', t: `Start ${fmtM(r.so)} m · End ${fmtM(Math.round(r.so + info.length))} m` });
   rows.push({ k: 'grid', t: `Grid square ${fmtInt(g)} m` });
+  if (opt.legendOut) Object.assign(opt.legendOut, { rows, g });
+  if (!opt.noLegend) {
   const lh = fs * 1.45, lw = Math.max(...rows.map(x => x.t.length)) * fs * 0.56 + fs * 3.2;
   const lhTot = rows.length * lh + fs * 0.7;
   const lx = opt.print ? v.x + v.w - lw - fs * 0.6 : v.x + fs * 2.6, ly = opt.print ? v.y + v.h - lhTot - fs * 1.6 : v.y + fs * 2.2;
@@ -1613,6 +1631,7 @@ function routeSVG(p, r, pal, opt = {}) {
     if (x.k === 'grid') o += `<rect x="${ix - fs * 0.35}" y="${cy - fs * 0.35}" width="${fs * 0.7}" height="${fs * 0.7}" style="fill:none;stroke:${pal.text};stroke-width:1.2" ${sw}/>`;
     o += `<text x="${lx + fs * 2.2}" y="${cy + fs * 0.35}" style="font-size:${fs}px;fill:${pal.text};font-weight:${x.k === 'sec' ? 700 : 600}">${esc(x.t)}</text>`;
   });
+  }
   if (opt.interactive) info.pts.forEach((q, i) => {
     o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 1.1}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.5}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`;
   });
@@ -1623,6 +1642,13 @@ function routeSVG(p, r, pal, opt = {}) {
   return o + '</svg>';
 }
 
+// points a fitted view must include so vessels (and their working circles) are not cut off
+function vesselExtents(p, r) {
+  const out = [];
+  (p.vessels || []).forEach(a => { const ps = vesselPose(a, r); if (!ps) return; const rad = Math.max(ps.L, a.mode === 'fixed' ? 0 : num(a.radius)) + 20;
+    out.push([ps.x - rad, ps.y - rad - 25], [ps.x + rad, ps.y + rad + 25]); });
+  return out;
+}
 // Support vessels: hull drawn to length (never smaller than an icon), tow line to its bridle / cable end,
 // flexible working radius, and a rotate handle at the bow when editing.
 function vesselsSVG(p, r, pal, fs, sw, tx, interactive) {
@@ -2007,7 +2033,7 @@ function renderRoute() {
   } else if (!r.valid || !r.route) {
     wrap.innerHTML = placeholderSVG('Fix the planner inputs first — see the Planner tab', 1000, 500);
   } else {
-    if (!RT.view) RT.view = fitView(r.route, p.route.bg, routeAspect());
+    if (!RT.view) RT.view = fitView(r.route, p.route.bg, routeAspect(), vesselExtents(p, r));
     wrap.innerHTML = routeSVG(p, r, PAL_SCREEN, { interactive: true, view: RT.view, pxWidth: wrap.clientWidth });
   }
   ['move', 'shape', 'rotate'].forEach(m => $('#routeSvgWrap').classList.toggle('mode-' + m, RT.mode === m));
@@ -2592,7 +2618,7 @@ function sheetPagesFor(p) {
   const swatch = c => `<i class="g-sw" style="background:${c}"></i>`;
   let tiles = tile(fmtInt(r.n), 'FLOATS TO FIT', `+ ${fmtInt(r.spares)} spare = <b>${fmtInt(r.total)}</b> to prepare`, 'hero');
   if (r.floatsUsed.length > 1 || true) r.floatsUsed.forEach(({ f: F, count }) => tiles += tile(fmtInt(count), esc(F.name), `${fmtM(num(F.netB))} kg float · + ${fmtInt(spare(count))} spare = <b>${fmtInt(count + spare(count))}</b>`, '', swatch(safeColour(F.colour))));
-  if (r.tails) { const tp = tailsSorted.reduce((a, t) => a + t.n + spare(t.n), 0), rope = tailsSorted.reduce((a, t) => a + Math.ceil((t.n + spare(t.n)) * t.len), 0);
+  if (r.tails) { const tp = tailsSorted.reduce((a, t) => a + t.n + r.tailSpare(t.n), 0), rope = tailsSorted.reduce((a, t) => a + Math.ceil((t.n + r.tailSpare(t.n)) * t.len), 0);
     tiles += tile(fmtInt(r.tails), `TAILS · ${tailsSorted.length} cut length${tailsSorted.length > 1 ? 's' : ''}`, `${tailsSorted.slice(0, 3).map(t => `<b>${t.n}</b> × ${fmt(t.len, 2)} m`).join(' · ')}${tailsSorted.length > 3 ? ' · …' : ''}<br>prepare <b>${fmtInt(tp)}</b> · rope <b>${fmtInt(rope)} m</b> · see tail cut list`); }
   r.lights.forEach(l => tiles += tile(fmtInt(l.marks.length), `LIGHTS · ${esc(l.L.character || l.L.name)}`, `${esc(l.L.name)} ${lightRule(l.L)}`, '', `<i class="g-sw" style="border-radius:50%;background:${l.colour}"></i>`));
   if (b) tiles += tile(fmtInt(r.bridles.length), 'BRIDLES', `${esc(b.name)} · between floats every <b>${fmtM(num(p.bridleInterval))} m</b>`, '', '<i class="g-sw" style="background:#7a2fc9;transform:rotate(45deg) scale(.8)"></i>');
@@ -2635,12 +2661,12 @@ function sheetPagesFor(p) {
   const td = p.tailDetail;
   if (tailMap.size) {
     const rows = tailsSorted.map(t => `<tr><td><b>${esc(t.spec)}</b></td><td class="hv">${fmt(t.len, 2)} m</td><td>${esc(t.end || '—')}</td><td>${esc(t.secs.join(', '))}</td>
-      <td class="hv">${fmtInt(t.n)}</td><td class="hv">${fmtInt(t.n + spare(t.n))}</td><td class="hv">${t.len ? fmtInt(Math.ceil((t.n + spare(t.n)) * t.len)) + ' m' : '—'}</td></tr>`).join('');
+      <td class="hv">${fmtInt(t.n)}</td><td class="hv">${fmtInt(t.n + r.tailSpare(t.n))}</td><td class="hv">${t.len ? fmtInt(Math.ceil((t.n + r.tailSpare(t.n)) * t.len)) + ' m' : '—'}</td></tr>`).join('');
     const imgs = td.images.slice(0, 4);
     pages.push(`${head('Tail cut list — float-to-float spacer tails')}
       <div class="g-cap">Each tail is tied float to float and sets the spacing — cut length = gap between floats${num(p.tailAllowance) ? ` + ${fmt(num(p.tailAllowance), 2)} m allowance for knots` : ''}</div>
       <table class="sh-secs"><thead><tr><th>Tail rope</th><th>Cut length</th><th>Ends</th><th>Used in</th><th>To fit</th><th>To prepare</th><th>Rope total</th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td><b>Total</b></td><td></td><td></td><td></td><td class="hv">${fmtInt(r.tails)}</td><td class="hv">${fmtInt(tailsSorted.reduce((a, t) => a + t.n + spare(t.n), 0))}</td><td class="hv">${fmtInt(tailsSorted.reduce((a, t) => a + Math.ceil((t.n + spare(t.n)) * t.len), 0))} m</td></tr></tfoot></table>
+      <tfoot><tr><td><b>Total</b></td><td></td><td></td><td></td><td class="hv">${fmtInt(r.tails)}</td><td class="hv">${fmtInt(tailsSorted.reduce((a, t) => a + t.n + r.tailSpare(t.n), 0))}</td><td class="hv">${fmtInt(tailsSorted.reduce((a, t) => a + Math.ceil((t.n + r.tailSpare(t.n)) * t.len), 0))} m</td></tr></tfoot></table>
       ${td.text ? `<div class="sh-note" style="margin:0 0 3mm;border-style:solid;font-size:10.5pt;white-space:pre-line">${esc(td.text)}</div>` : ''}
       ${imgs.length ? `<div class="sh-att" style="grid-template-columns:repeat(${Math.min(imgs.length, 2)},1fr)">${imgs.map(im => `<figure><img src="${safeImg(im.img)}" alt="">${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}`);
   }
@@ -2671,7 +2697,14 @@ function sheetPagesFor(p) {
   }
 
   pages.push(`${head('Layout plan')}
-    <div class="sh-box" style="flex:1;min-height:0"><h5>Layout plan — floated length${p.route.type === 'straight' ? ' (straight)' : ''}${hasGeo(p.route.geo) ? ` · start ${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}` : ''}</h5><div class="route-svg">${routeSVG(p, r, PAL_PRINT, { print: true, aspect: 1.95 })}</div></div>`);
+    ${(() => { const lo = {}; const svg = routeSVG(p, r, PAL_PRINT, { print: true, aspect: 1.5, noLegend: true, legendOut: lo });
+      const ic = x => x.k === 'sec' ? `<i class="lg-line" style="background:${x.c}"></i>` : x.k === 'br' ? '<i class="lg-dia"></i>' : x.k === 'ves' ? '<i class="lg-ves"></i>' : x.k === 'lt' ? `<i class="lg-lt" style="background:${x.c}"></i>` : x.k === 'se' ? '<i class="lg-txt">○ ■</i>' : '<i class="lg-grid"></i>';
+      return `<div class="sh-map">
+        <div class="sh-box" style="min-height:0"><h5>Layout plan — floated length${p.route.type === 'straight' ? ' (straight)' : ''}</h5><div class="route-svg">${svg}</div></div>
+        <div class="sh-box sh-legend"><h5>Key</h5><div class="in">${(lo.rows || []).map(x => `<div class="lg-row">${ic(x)}<span>${esc(x.t)}</span></div>`).join('')}
+          ${hasGeo(p.route.geo) ? `<div class="lg-pos"><b>Route start (first float)</b><br>${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}</div>` : ''}
+          <div class="lg-pos"><b>Floated length</b><br>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m · ${fmtInt(r.n)} floats</div></div></div>
+      </div>`; })()}`);
   const vrows = vesselRows(p, r), VPER = 7;
   for (let i = 0; i < Math.max(1, vrows.length); i += VPER) {
     const last = i + VPER >= vrows.length;
