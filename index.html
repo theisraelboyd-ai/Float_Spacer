@@ -371,7 +371,14 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 .sh-lights td{border:1.5px solid #000;padding:1mm 2mm}
 .sh-lights .lc{display:inline-block;width:10pt;height:10pt;border-radius:50%;border:1px solid #000;vertical-align:-2px;margin-right:4px}
 
-@media (min-width:760px){.route-side .geo-card{grid-column:span 2;grid-row:span 2}.geo-card{columns:2;column-gap:28px}.geo-card>*{break-inside:avoid}.geo-card .card-h{column-span:all}}
+@media (min-width:900px){.geo-card.active{columns:3;column-gap:28px}.geo-card>*{break-inside:avoid}.geo-card .card-h{column-span:all}}
+.route-hero{padding:12px}
+.route-hero .route-toolbar{margin-bottom:10px}
+.route-toolbar .tg{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-right:2px}
+#routeSvgWrap.mode-shape svg{cursor:move}
+#routeSvgWrap.mode-rotate svg{cursor:alias}
+#rPanels .panel{display:none}
+#rPanels .panel.active{display:block;animation:pfade .18s ease}
 /* guide */
 .guide{margin-bottom:12px;border-left:4px solid var(--accent)}
 .guide .card-h{margin-bottom:10px}
@@ -561,50 +568,63 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
 <!-- ================= ROUTE ================= -->
 <section class="tab" id="tab-route">
-  <div class="route-layout">
-    <div>
-      <div class="route-toolbar">
-        <button class="btn sm" id="rtStraight">Straight</button>
-        <button class="btn sm" id="rtOmega">Omega</button>
-        <span class="sep"></span>
-        <button class="btn sm" id="rtModeAdd" aria-pressed="true" title="Click to add points">✚ Draw</button>
-        <button class="btn sm" id="rtModeMove" aria-pressed="false" title="Drag to pan, drag points to move">✥ Move / pan</button>
-        <button class="btn sm" id="rtUndo">Undo</button>
-        <button class="btn sm" id="rtFitLen" title="Scale the shape so its length matches the floated cable">Fit to cable length</button>
-        <button class="btn sm" id="rtFitView">Fit view</button>
-        <button class="btn sm danger" id="rtClear" title="Clear the drawn route (keeps the map)">Clear route</button>
-        <span class="sep"></span>
-        <button class="btn sm" id="rtLights" aria-pressed="false" title="Show lights on the map">Show lights</button>
-        <button class="btn sm danger" id="rtClearBg" title="Remove the map, chart image and overlay">Clear background</button>
-      </div>
-      <div id="routeSvgWrap"><div id="routeSvg"></div><div id="cursorPos"></div></div>
-      <div class="route-help">
-        <span id="placeBanner"></span><b>Draw:</b> click to add a point to the end · <b>Shift + click</b> inserts into the nearest leg · drag a point to move it · double-click a point to delete it · scroll to zoom.
-        The drawn line is the <b>floated length</b>, starting at the first float; it is coloured by cable section.
+  <div class="kpis" id="routeKpis"></div>
+  <div class="card hero route-hero">
+    <div class="route-toolbar">
+      <span class="tg">Shape</span>
+      <button class="btn sm" id="rtStraight">Straight</button>
+      <button class="btn sm" id="rtOmega">Omega</button>
+      <span class="sep"></span>
+      <span class="tg">Tool</span>
+      <button class="btn sm" id="rtModeAdd" aria-pressed="true" title="Click to add points, drag points to move them">✚ Draw</button>
+      <button class="btn sm" id="rtModeMove" aria-pressed="false" title="Drag to pan the map">✋ Pan</button>
+      <button class="btn sm" id="rtModeShape" aria-pressed="false" title="Drag to move the whole route over the background">⇔ Move shape</button>
+      <button class="btn sm" id="rtModeRotate" aria-pressed="false" title="Drag to rotate the whole route about its centre">⟲ Rotate shape</button>
+      <span class="sep"></span>
+      <button class="btn sm" id="rtUndo">Undo</button>
+      <button class="btn sm" id="rtFitLen" title="Scale the shape so its length matches the floated cable">Fit to cable length</button>
+      <button class="btn sm" id="rtFitView">Fit view</button>
+      <span class="sep"></span>
+      <button class="btn sm" id="rtLights" aria-pressed="false" title="Show lights on the map">Show lights</button>
+      <button class="btn sm danger" id="rtClear" title="Clear the drawn route (keeps the map)">Clear route</button>
+      <button class="btn sm danger" id="rtClearBg" title="Remove the map, chart image and overlay">Clear background</button>
+    </div>
+    <div id="routeSvgWrap"><div id="routeSvg"></div><div id="cursorPos"></div></div>
+    <div class="route-help"><span id="placeBanner"></span><span id="routeHelp"></span></div>
+  </div>
+
+  <div class="panel-tabs" id="rPanelTabs">
+    <button data-rpanel="shape"><i style="background:var(--accent)"></i>Shape &amp; labels</button>
+    <button data-rpanel="geo"><i style="background:#3a86ff"></i>Chart &amp; position</button>
+    <button data-rpanel="vessels"><i style="background:#f97316"></i>Support vessels</button>
+    <button data-rpanel="check"><i style="background:#38b2ac"></i>Sections &amp; check</button>
+  </div>
+  <div class="panels" id="rPanels">
+    <div class="card panel" data-rpanel="shape">
+      <div class="card-h"><h2>Shape &amp; labels</h2></div>
+      <div class="pgrid">
+        <div>
+          <h3 style="margin-top:0">Omega</h3>
+          <label class="field"><span>Throat width<em>gap between the two legs</em></span><div class="unit-wrap"><input id="omThroat" type="number" value="20" min="0" step="1"><i>m</i></div></label>
+          <label class="field"><span>Neck length<em>from legs to the loop</em></span><div class="unit-wrap"><input id="omNeck" type="number" value="30" min="0" step="1"><i>m</i></div></label>
+          <div class="small muted" style="margin-bottom:8px">The loop is sized so the whole omega uses the floated cable length.</div>
+          <button class="btn primary sm" id="rtOmegaGen">Generate omega</button>
+        </div>
+        <div>
+          <h3 style="margin-top:0">Move or rotate by numbers</h3>
+          <label class="field"><span>Move east<em>negative = west</em></span><div class="unit-wrap"><input id="nudgeE" type="number" value="0" step="10"><i>m</i></div></label>
+          <label class="field"><span>Move north<em>negative = south</em></span><div class="unit-wrap"><input id="nudgeN" type="number" value="0" step="10"><i>m</i></div></label>
+          <label class="field"><span>Rotate<em>clockwise, about the centre</em></span><div class="unit-wrap"><input id="nudgeR" type="number" value="0" step="5"><i>°</i></div></label>
+          <button class="btn sm primary" id="nudgeApply">Apply</button>
+        </div>
+        <div>
+          <h3 style="margin-top:0">Labels</h3>
+          <label class="field"><span>Start label</span><input data-rpath="startLabel" placeholder="Shore end"></label>
+          <label class="field"><span>End label</span><input data-rpath="endLabel" placeholder="Vessel"></label>
+        </div>
       </div>
     </div>
-    <div class="route-side">
-      <div class="card">
-        <div class="card-h"><h2>Route check</h2></div>
-        <div id="routeStats"></div>
-      </div>
-      <div class="card">
-        <div class="card-h"><h2>Support vessels</h2><button class="btn sm" data-goto="vessels" style="margin-left:auto">Manage</button></div>
-        <div id="routeVessels"></div>
-      </div>
-      <div class="card" id="omegaCard">
-        <div class="card-h"><h2>Omega shape</h2></div>
-        <label class="field"><span>Throat width<em>gap between the two legs</em></span><div class="unit-wrap"><input id="omThroat" type="number" value="20" min="0" step="1"><i>m</i></div></label>
-        <label class="field"><span>Neck length<em>from legs to the loop</em></span><div class="unit-wrap"><input id="omNeck" type="number" value="30" min="0" step="1"><i>m</i></div></label>
-        <div class="small muted" style="margin-bottom:8px">The loop diameter is sized so the whole omega uses the floated cable length. Generate it, then drag points to suit seabed and navigable water.</div>
-        <button class="btn primary sm" id="rtOmegaGen">Generate omega</button>
-      </div>
-      <div class="card">
-        <div class="card-h"><h2>Labels</h2></div>
-        <label class="field"><span>Start label</span><input data-rpath="startLabel" placeholder="Shore end"></label>
-        <label class="field"><span>End label</span><input data-rpath="endLabel" placeholder="Vessel"></label>
-      </div>
-      <div class="card geo-card">
+      <div class="card panel geo-card" data-rpanel="geo">
         <div class="card-h"><h2>Chart &amp; position</h2></div>
         <div class="small muted" style="margin-bottom:8px">Put the route start (first float) on a real position, then add a map, a chart image or a vector overlay underneath.</div>
         <div class="row" style="margin-bottom:8px"><input id="geoSearch" placeholder="Search a place, e.g. Kyleakin"><button class="btn sm" id="geoFind">Find</button></div>
@@ -639,6 +659,14 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
           <button class="btn sm danger" id="bgRemove">Remove image</button>
         </div>
       </div>
+    <div class="card panel" data-rpanel="vessels">
+      <div class="card-h"><h2>Support vessels</h2><span class="small muted">connected vessels follow their bridle; unconnected ones are placed with Place</span>
+        <button class="btn sm" id="rtVesselsGo" style="margin-left:auto">Add / edit in Planner</button></div>
+      <div id="routeVessels"></div>
+    </div>
+    <div class="card panel" data-rpanel="check">
+      <div class="card-h"><h2>Sections &amp; check</h2></div>
+      <div id="routeStats"></div>
     </div>
   </div>
 </section>
@@ -1387,7 +1415,8 @@ function routeSVG(p, r, pal, opt = {}) {
     const close = Math.hypot(P[0] - other[0], P[1] - other[1]) < fs * 14;
     let anchor, x, y;
     if (!close && Math.abs(dx) > 0.5) { anchor = dx < 0 ? 'end' : 'start'; x = P[0] + dx * fs * 0.8; y = P[1] + dy * fs * 0.8 + fs * 0.35; }
-    else { anchor = P[0] <= other[0] ? 'end' : 'start'; x = P[0] + (anchor === 'end' ? -1 : 1) * fs * 0.8; y = P[1] + dy * fs * 0.9 + fs * 0.35; }
+    else if (Math.abs(P[0] - other[0]) >= Math.abs(P[1] - other[1])) { anchor = P[0] <= other[0] ? 'end' : 'start'; x = P[0] + (anchor === 'end' ? -1 : 1) * fs * 0.8; y = P[1] + dy * fs * 0.9 + fs * 0.35; }
+    else { anchor = dx < 0 ? 'end' : 'start'; x = P[0] + (dx < 0 ? -1 : 1) * fs * 0.8; y = P[1] + (P[1] <= other[1] ? -fs * 0.6 : fs * 1.2); }
     return tx(x, y, text, `fill:${pal.text};font-weight:800`, anchor);
   };
   o += `<circle cx="${A[0]}" cy="${A[1]}" r="${fs * 0.45}" style="fill:${pal.halo};stroke:${pal.text};stroke-width:2" ${sw}/>`;
@@ -1721,12 +1750,54 @@ function addSection() {
 }
 
 /* ---------------- route editor ---------------- */
+const RPL = { panel: 'geo' };
 const RT = { mode: 'add', drag: null, undo: [], view: null, planId: null, raf: 0 };
 const routeAspect = () => { const el = $('#routeSvg'); return (el.clientWidth / el.clientHeight) || 2; };
 function ensurePoints(p) {
   if (!Array.isArray(p.route.points)) p.route.points = routeControlPoints(p, calc(p).Lf).map(q => q.slice());
 }
-function pushUndo(p) { RT.undo.push(JSON.stringify({ points: p.route.points, type: p.route.type })); if (RT.undo.length > 60) RT.undo.shift(); }
+function pushUndo(p) {
+  RT.undo.push(JSON.stringify({ points: p.route.points, type: p.route.type, ves: p.vessels.map(a => ({ id: a.id, x: a.x, y: a.y, heading: a.heading, dist: a.dist })) }));
+  if (RT.undo.length > 60) RT.undo.shift();
+}
+// Move / rotate the whole drawing over a fixed background. Unconnected vessels travel with it;
+// connected vessels follow their bridle and turn with the shape.
+function shapeCentre(pts) { const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]); return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]; }
+function transformShape(p, base, dx, dy, angDeg, c) {
+  const a = angDeg * D2R, cs = Math.cos(a), sn = Math.sin(a);
+  const tf = q => { const x = q[0] - c[0], y = q[1] - c[1]; return [Math.round((c[0] + x * cs - y * sn + dx) * 100) / 100, Math.round((c[1] + x * sn + y * cs + dy) * 100) / 100]; };
+  p.route.points = base.pts.map(tf);
+  base.ves.forEach(o => {
+    const v = p.vessels.find(x => x.id === o.id); if (!v) return;
+    if (o.x != null && v.link === 'none') { const q = tf([o.x, o.y]); v.x = q[0]; v.y = q[1]; }
+    v.heading = Math.round(((num(o.heading) + angDeg) % 360 + 360) % 360);
+  });
+  if (p.route.type === 'straight') p.route.type = 'custom';
+}
+const shapeBase = p => ({ pts: p.route.points.map(q => q.slice()), ves: p.vessels.map(a => ({ id: a.id, x: a.x, y: a.y, heading: a.heading })) });
+const ROUTE_HELP = {
+  add: '<b>Draw:</b> click to add a point to the end · click on the line to insert a point · drag a point to move it · double-click a point to delete it · scroll to zoom.',
+  move: '<b>Pan:</b> drag the map to look around · drag points to move them · scroll to zoom.',
+  shape: '<b>Move shape:</b> drag anywhere to slide the whole route over the background. Unconnected vessels move with it.',
+  rotate: '<b>Rotate shape:</b> drag around the route to turn it about its centre. Vessels turn with it.'
+};
+function routeKpisHTML(p, r) {
+  const info = r.route, g = p.route.geo;
+  const k = (panel, label, val, sub, cls = '') => `<button class="kpi" data-rpanel-go="${panel}"><span>${label}</span><b class="${cls}" style="${cls ? `color:var(--${cls})` : ''}">${val}</b><em>${sub}</em></button>`;
+  if (!r.valid) return '';
+  const diff = info ? info.length - r.Lf : 0, dOk = info && Math.abs(diff) <= Math.max(1, r.Lf * 0.01);
+  const start = info && hasGeo(g) ? worldToGeo(info.U[0][0], info.U[0][1], g) : null;
+  const typeName = { straight: 'Straight', omega: 'Omega', custom: 'Custom' }[p.route.type] || 'Custom';
+  return k('shape', 'Shape', typeName, info ? `${fmtM(Math.round(info.length))} m drawn` : 'nothing drawn')
+    + k('check', 'Drawn vs cable', info ? `${diff >= 0 ? '+' : '−'}${fmt(Math.abs(diff), 1)} m` : '—', `floated cable ${fmtM(r.Lf)} m`, info ? (dOk ? 'ok' : 'warn') : '')
+    + k('geo', 'Start position', start ? `<span style="font-size:17px">${fmtDDM(start[0], true)}<br>${fmtDDM(start[1], false)}</span>` : 'Not set', start ? (g.base !== 'none' ? (g.base === 'sat' ? 'satellite map' : 'OpenStreetMap') : 'no map') : 'search or type it')
+    + k('check', 'Bridles', r.b ? fmtInt(r.bridles.length) : '—', r.b ? `every ${fmtM(num(p.bridleInterval))} m` : 'none on this plan')
+    + k('vessels', 'Support vessels', fmtInt(p.vessels.length), p.vessels.length ? `${p.vessels.filter(a => vesselPose(a, r)).length} on the map` : 'add in Planner');
+}
+function applyRPanels() {
+  $$('#rPanelTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.rpanel === RPL.panel));
+  $$('#rPanels .panel').forEach(el => el.classList.toggle('active', el.dataset.rpanel === RPL.panel));
+}
 function blankRouteSVG(view, pts, p) {
   const v = view, g = niceStep(v.w / 10), sw = 'vector-effect="non-scaling-stroke"', fs = v.w / 60;
   let o = `<svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
@@ -1755,10 +1826,15 @@ function renderRoute() {
     if (!RT.view) RT.view = fitView(r.route, p.route.bg, routeAspect());
     wrap.innerHTML = routeSVG(p, r, PAL_SCREEN, { interactive: true, view: RT.view, pxWidth: wrap.clientWidth });
   }
-  $('#routeSvgWrap').classList.toggle('mode-move', RT.mode === 'move');
+  ['move', 'shape', 'rotate'].forEach(m => $('#routeSvgWrap').classList.toggle('mode-' + m, RT.mode === m));
+  $('#routeHelp').innerHTML = ROUTE_HELP[RT.mode] || '';
+  $('#routeKpis').innerHTML = routeKpisHTML(p, r);
+  applyRPanels();
   fillGeoControls(p);
   $('#rtModeAdd').setAttribute('aria-pressed', RT.mode === 'add');
   $('#rtModeMove').setAttribute('aria-pressed', RT.mode === 'move');
+  $('#rtModeShape').setAttribute('aria-pressed', RT.mode === 'shape');
+  $('#rtModeRotate').setAttribute('aria-pressed', RT.mode === 'rotate');
   $('#rtUndo').disabled = !RT.undo.length;
   $('#rtLights').setAttribute('aria-pressed', !!p.route.showLights);
   const g0 = p.route.geo; $('#rtClearBg').disabled = !(p.route.bg || (g0.overlay && g0.overlay.length) || g0.base !== 'none' || g0.seamarks);
@@ -1809,7 +1885,8 @@ function moveVesselTo(a, q, r) {
 function fillGeoControls(p) {
   const g = p.route.geo, set = hasGeo(g);
   const fill = (id, v) => { const el = $(id); if (document.activeElement !== el) el.value = v; };
-  fill('#geoLat', set ? fmtDDM(g.lat, true) : ''); fill('#geoLon', set ? fmtDDM(g.lon, false) : '');
+  const r0 = set ? calc(p).route : null, st = set ? (r0 ? worldToGeo(r0.U[0][0], r0.U[0][1], g) : [g.lat, g.lon]) : null;
+  fill('#geoLat', st ? fmtDDM(st[0], true) : ''); fill('#geoLon', st ? fmtDDM(st[1], false) : '');
   $('#geoControls').hidden = !set;
   $('#geoBase').value = g.base; $('#geoSea').checked = !!g.seamarks; $('#geoOpacity').value = num(g.opacity, 1);
   $('#ovRemove').disabled = !(g.overlay && g.overlay.length);
@@ -1892,6 +1969,13 @@ function initRouteEditor() {
       RT.drag = { type: 'pt', i: +h.dataset.i };
       wrap.setPointerCapture(e.pointerId); e.preventDefault(); return;
     }
+    if ((RT.mode === 'shape' || RT.mode === 'rotate') && e.button === 0) {
+      ensurePoints(p); if (p.route.points.length < 2) return;
+      pushUndo(p);
+      const base = shapeBase(p);
+      RT.drag = { type: RT.mode, q0: toWorld(e, svg), base, c: shapeCentre(base.pts) };
+      wrap.setPointerCapture(e.pointerId); e.preventDefault(); return;
+    }
     if (RT.mode === 'move' || e.button === 1) {
       RT.drag = { type: 'pan', cx: e.clientX, cy: e.clientY, view: { ...RT.view }, scale: Math.max(RT.view.w / wrap.clientWidth, RT.view.h / wrap.clientHeight) };
       wrap.setPointerCapture(e.pointerId); e.preventDefault(); return;
@@ -1915,6 +1999,18 @@ function initRouteEditor() {
       return;
     }
     const p = activePlan();
+    if (RT.drag.type === 'shape' || RT.drag.type === 'rotate') {
+      const svg = wrap.querySelector('svg'); if (!svg) return;
+      const d = RT.drag, q = toWorld(e, svg);
+      if (d.type === 'shape') transformShape(p, d.base, q[0] - d.q0[0], q[1] - d.q0[1], 0, d.c);
+      else {
+        const a0 = Math.atan2(d.q0[1] - d.c[1], d.q0[0] - d.c[0]), a1 = Math.atan2(q[1] - d.c[1], q[0] - d.c[0]);
+        let deg = (a1 - a0) / D2R; if (!e.shiftKey) deg = Math.round(deg);
+        transformShape(p, d.base, 0, 0, deg, d.c);
+        $('#cursorPos').textContent = `rotate ${deg >= 0 ? '+' : ''}${Math.round(deg)}°`;
+      }
+      d.moved = true; scheduleRoute(); return;
+    }
     if (RT.drag.type === 'vessel' || RT.drag.type === 'vrot') {
       const svg = wrap.querySelector('svg'), a = p.vessels.find(x => x.id === RT.drag.id); if (!svg || !a) return;
       const q = toWorld(e, svg);
@@ -1933,6 +2029,7 @@ function initRouteEditor() {
   const end = () => {
     if (!RT.drag) return;
     if (RT.drag.type === 'vessel' || RT.drag.type === 'vrot') { RT.drag = null; commitRoute(); renderPlanVessels(); return; }
+    if (RT.drag.type === 'shape' || RT.drag.type === 'rotate') { if (!RT.drag.moved) RT.undo.pop(); RT.drag = null; commitRoute(); return; }
     if (RT.drag.type === 'pt' && !RT.drag.moved) RT.undo.pop();
     RT.drag = null; commitRoute();
   };
@@ -1955,9 +2052,24 @@ function initRouteEditor() {
   const setMode = m => { RT.mode = m; renderRoute(); };
   $('#rtModeAdd').onclick = () => setMode('add');
   $('#rtModeMove').onclick = () => setMode('move');
+  $('#rtModeShape').onclick = () => setMode('shape');
+  $('#rtModeRotate').onclick = () => setMode('rotate');
+  $('#rPanelTabs').addEventListener('click', e => { const b = e.target.closest('[data-rpanel]'); if (b) { RPL.panel = b.dataset.rpanel; applyRPanels(); } });
+  $('#routeKpis').addEventListener('click', e => { const b = e.target.closest('[data-rpanel-go]'); if (b) { RPL.panel = b.dataset.rpanelGo; applyRPanels(); $('#rPanels').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } });
+  $('#rtVesselsGo').onclick = () => { showTab('planner'); openPanel('vessels'); };
+  $('#nudgeApply').onclick = () => {
+    const p = activePlan(); ensurePoints(p); if (p.route.points.length < 2) return toast('Draw a route first');
+    const dx = num($('#nudgeE').value), dy = -num($('#nudgeN').value), rot = num($('#nudgeR').value);
+    if (!dx && !dy && !rot) return;
+    pushUndo(p); const base = shapeBase(p); transformShape(p, base, dx, dy, rot, shapeCentre(base.pts));
+    ['#nudgeE', '#nudgeN', '#nudgeR'].forEach(id => $(id).value = 0);
+    commitRoute(); toast('Shape moved');
+  };
   $('#rtUndo').onclick = () => {
     const p = activePlan(), u = RT.undo.pop(); if (!u) return;
-    const o = JSON.parse(u); p.route.points = o.points; p.route.type = o.type || 'custom'; commitRoute();
+    const o = JSON.parse(u); p.route.points = o.points; p.route.type = o.type || 'custom';
+    (o.ves || []).forEach(s => { const a = p.vessels.find(x => x.id === s.id); if (a) Object.assign(a, { x: s.x, y: s.y, heading: s.heading, dist: s.dist }); });
+    commitRoute();
   };
   $('#rtStraight').onclick = () => {
     const p = activePlan(); pushUndo(p);
