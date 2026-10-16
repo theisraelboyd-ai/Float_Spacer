@@ -1012,6 +1012,16 @@ function calc(p) {
                  first: r.positions.length };
     let k = 0;
     if (r.positions.length && Math.abs(r.positions[r.positions.length - 1] - a) < 1e-6) k = 1;
+    // a short leftover gap at a section joint (e.g. 0.6 m) makes a useless tail: drop the float before the joint instead
+    else if (r.positions.length > 1 && r.secs.length) {
+      const prev = r.secs[r.secs.length - 1], g = a - r.positions[r.positions.length - 1];
+      if (g > 1e-6 && g < Math.min(1, 0.5 * prev.X) && prev.count > 1) {
+        const dropped = r.positions.pop(); prev.count--; prev.lastMark = r.positions[r.positions.length - 1];
+        r.msgs.push({ level: 'info', text: `Joint at ${fmtM(a)} m: float at ${fmt(dropped, 2)} m left out (only ${fmt(g, 2)} m short of the joint) — joint tail ${fmt(a - prev.lastMark, 2)} m.` });
+        if (a - prev.lastMark > prev.xSafe + 1e-9) r.msgs.push({ level: 'warn', text: `Joint gap of ${fmt(a - prev.lastMark, 2)} m before ${sr.name} is above the safe spacing for ${prev.name}.` });
+      }
+    }
+    sr.first = r.positions.length;
     for (; a + k * X <= end + 1e-6 && r.positions.length < 20001; k++) r.positions.push(a + k * X);
     sr.count = r.positions.length - sr.first;
     sr.firstMark = sr.count ? r.positions[sr.first] : null;
@@ -1026,7 +1036,7 @@ function calc(p) {
     sr.xSafe = Math.floor(safe / sstep + 1e-9) * sstep;
     sr.edgeGap = X - sr.flen;
     sr.tailsPer = Math.max(0, Math.round(num(s.tailsPer, 1)));
-    sr.tailLen = Math.round((X + Math.max(0, num(p.tailAllowance))) * 100) / 100;
+    sr.tailLen = Math.round((X + Math.max(0, num(p.tailAllowance))) * 20) / 20;
     sr.tails = 0; sr.ropeLen = 0; sr.cuts = [];
     r.secs.push(sr);
     wsum += W * len; buoy += sr.count * B; a = end;
@@ -1049,7 +1059,7 @@ function calc(p) {
   r.secs.forEach(sc => {
     for (let k = sc.first; k < sc.first + sc.count; k++) {
       if (k === 0) continue;
-      const L = Math.round((r.positions[k] - r.positions[k - 1] + allow) * 100) / 100, q = sc.tailsPer; if (!q) continue;
+      const L = Math.round((r.positions[k] - r.positions[k - 1] + allow) * 20) / 20, q = sc.tailsPer; if (!q) continue;   // cut lengths to the nearest 5 cm
       sc.tails += q; sc.ropeLen += q * L;
       const key = `${sc.s.tailSpec}|${L}|${sc.s.tailEnd}`;
       const c = cutMap.get(key) || { spec: (sc.s.tailSpec || 'Tail').trim(), len: L, end: (sc.s.tailEnd || '').trim(), n: 0, secs: [] };
