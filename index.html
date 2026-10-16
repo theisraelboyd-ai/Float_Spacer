@@ -465,7 +465,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
 
   <div class="panel-tabs" id="panelTabs" role="tablist">
     <button data-panel="cable"><i style="background:var(--cable)"></i>Cable</button>
-    <button data-panel="float"><i id="ptFloat"></i>Float &amp; safety factor</button>
+    <button data-panel="float"><i id="ptFloat"></i>Default float &amp; SF</button>
     <button data-panel="sections"><i style="background:#38b2ac"></i>Sections · spacing · tails</button>
     <button data-panel="bridles"><i style="background:var(--bridle)"></i>Bridles</button>
     <button data-panel="lights"><i style="background:#ffd60a;border-radius:50%"></i>Lights</button>
@@ -487,7 +487,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     </div>
 
     <div class="card panel float-card" id="floatCard" data-panel="float">
-      <div class="card-h"><h2>Float &amp; safety factor</h2><span class="small muted">one float type for the whole plan</span></div>
+      <div class="card-h"><h2>Float &amp; safety factor</h2><span class="small muted">plan default float — any section can use a different one</span></div>
       <div class="pgrid">
         <div class="float-pick">
           <div class="thumb" id="floatThumb"></div>
@@ -504,7 +504,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
     </div>
 
     <div class="card panel" data-panel="sections">
-      <div class="card-h"><h2>Sections · spacing · tails</h2><span class="small muted">same float throughout · listed from the first float onwards</span>
+      <div class="card-h"><h2>Sections · spacing · tails</h2><span class="small muted">each section sets its own float, weight, spacing and tails · listed from the first float onwards</span>
         <button class="btn sm primary" id="btnAddSection" style="margin-left:auto">+ Add section</button></div>
       <div id="sections"></div>
     </div>
@@ -800,7 +800,7 @@ const LIGHT_COLOURS = [['#ffd60a', 'Yellow'], ['#ffffff', 'White'], ['#ff3b30', 
 const LIGHT_AT = [['floats', 'Floats — every n floats'], ['ends', 'First and last float'], ['sections', 'Each section change'], ['bridles', 'Every bridle']];
 const defaultLight = (o = {}) => ({ id: uid(), name: 'LED buoy light', colour: '#ffd60a', character: 'Fl Y 5s', range: 2, at: 'floats', everyN: 4, ...o });
 const defaultAttach = () => ({ ref: '', text: '', images: [] });
-const defaultSection = (o = {}) => ({ id: uid(), name: '', length: 1000, w: 34, spacing: 5, tails: 2, tailSpec: '', why: '', ...o });
+const defaultSection = (o = {}) => ({ id: uid(), name: '', floatId: '', length: 1000, w: 34, spacing: 5, tails: 2, tailSpec: '', why: '', ...o });
 const SECTION_COLOURS = ['#38b2ac', '#e0864a', '#b67ad6', '#7fb24a', '#4f8fd6', '#d1a93a', '#d65f8a', '#5aa58f'];
 const secColour = i => SECTION_COLOURS[i % SECTION_COLOURS.length];
 const defaultPlan = (floatId = '') => ({
@@ -902,7 +902,7 @@ function getPath(o, path) { return path.split('.').reduce((a, k) => a?.[k], o); 
 function setPath(o, path, v) { const ks = path.split('.'); const last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; }
 
 /* ---------------- calculations ---------------- */
-// A plan = one float type + SF, and a run of cable sections (each with its own weight, spacing and tails).
+// A plan = SF + a default float, and a run of cable sections (each with its own float, weight, spacing and tails).
 function calc(p) {
   const f = floatById(p.floatId), b = bridleById(p.bridleId);
   const L = num(p.cable.length), B = f ? num(f.netB) : 0, SF = num(p.sf);
@@ -910,8 +910,8 @@ function calc(p) {
   const r = { f, b, L, B, SF, so, msgs: [], ok: true, positions: [], secs: [], bridles: [] };
   const bad = t => { r.msgs.push({ level: 'bad', text: t }); r.ok = false; };
   const warn = t => r.msgs.push({ level: 'warn', text: t });
-  if (!f) bad('Choose a float type (Float Library tab).');
-  else if (!(B > 0)) bad('The float type needs a net buoyancy above 0.');
+  const secFloat = s => floatById(s.floatId) || f;
+  if (p.sections.some(s => !secFloat(s))) bad('Choose a float type — for the plan or for each section.');
   if (!(SF > 0)) bad('Safety factor must be above 0.');
   if (!(L > 0)) bad('Cable length must be above 0.');
   if (!p.sections.length) bad('Add at least one cable section.');
@@ -920,14 +920,15 @@ function calc(p) {
     if (!(num(s.length) > 0)) bad(`${nm}: length must be above 0.`);
     if (!(num(s.w) > 0)) bad(`${nm}: weight in seawater must be above 0.`);
     if (!(num(s.spacing) > 0)) bad(`${nm}: spacing must be above 0.`);
+    const sf = secFloat(s); if (sf && !(num(sf.netB) > 0)) bad(`${nm}: float “${sf.name}” needs a net buoyancy above 0.`);
   });
   if (!r.ok) { r.valid = false; return r; }
   r.valid = true;
-  r.flen = num(f.length);
-  let a = so, wsum = 0;
+  let a = so, wsum = 0, buoy = 0;
   p.sections.forEach((s, i) => {
     const X = num(s.spacing), W = num(s.w), len = num(s.length), end = a + len;
-    const sr = { i, s, name: s.name || `Section ${i + 1}`, colour: secColour(i), from: a, to: end, len, X, W,
+    const sf = secFloat(s), B = num(sf.netB);
+    const sr = { i, s, f: sf, B, flen: num(sf.length), name: s.name || `Section ${i + 1}`, colour: secColour(i), from: a, to: end, len, X, W,
                  tailsPer: Math.max(0, Math.round(num(s.tails))), first: r.positions.length };
     let k = 0;
     if (r.positions.length && Math.abs(r.positions[r.positions.length - 1] - a) < 1e-6) k = 1;
@@ -943,15 +944,15 @@ function calc(p) {
     sr.xMaxN1 = B / (1.5 * W);
     const safe = Math.min(sr.xMax, sr.xMaxN1), sstep = safe < 2 ? 0.1 : safe < 10 ? 0.25 : 0.5;
     sr.xSafe = Math.floor(safe / sstep + 1e-9) * sstep;
-    sr.edgeGap = X - r.flen;
+    sr.edgeGap = X - sr.flen;
     sr.tails = sr.count * sr.tailsPer;
     r.secs.push(sr);
-    wsum += W * len; a = end;
+    wsum += W * len; buoy += sr.count * B; a = end;
     const nm = `${sr.name}:`;
     if (sr.util > 1) bad(`${nm} overloaded — each float carries ${fmt(sr.load, 0)} kg but gives ${fmt(B, 0)} kg. Use ${fmt(sr.xSuggest, 2)} m spacing or less.`);
     else if (sr.util > 0.9) warn(`${nm} only ${fmt((1 - sr.util) * 100, 0)}% margin on each float.`);
     if (sr.utilN1 > 1) warn(`${nm} spacing is above the cascade-safe limit — if one float is lost the floats either side carry ${fmt(sr.utilN1 * 100, 0)}%. Safe spacing is ${fmt(sr.xSafe, 2)} m.`);
-    if (sr.edgeGap < 0) bad(`${nm} floats overlap — float is ${fmt(r.flen, 2)} m long, spacing is ${fmt(X, 2)} m.`);
+    if (sr.edgeGap < 0) bad(`${nm} floats overlap — float is ${fmt(sr.flen, 2)} m long, spacing is ${fmt(X, 2)} m.`);
     else if (sr.edgeGap < 0.5) warn(`${nm} only ${fmt(sr.edgeGap, 2)} m clear between floats.`);
     if (!sr.tailsPer) warn(`${nm} no tails / binding ropes specified.`);
   });
@@ -964,7 +965,12 @@ function calc(p) {
   r.tails = r.secs.reduce((t, s) => t + s.tails, 0);
   r.tailSpares = Math.ceil(r.tails * Math.max(0, num(p.sparesPct)) / 100);
   r.utilMax = Math.max(...r.secs.map(s => s.util));
-  r.totalBuoy = r.n * B; r.cableWeight = wsum; r.reserve = r.totalBuoy / wsum;
+  r.totalBuoy = buoy; r.cableWeight = wsum; r.reserve = buoy / wsum;
+  const worst = r.secs.reduce((m, s) => s.util > m.util ? s : m, r.secs[0]);
+  r.B = worst.B; r.flen = r.secs[0].flen;
+  const fm = new Map();
+  r.secs.forEach(s => { const e = fm.get(s.f.id) || { f: s.f, count: 0, names: [] }; e.count += s.count; e.names.push(s.name); fm.set(s.f.id, e); });
+  r.floatsUsed = [...fm.values()];
   if (r.eo < -1e-6) bad(`Sections run ${fmtM(-r.eo)} m past the end of the cable (first float at ${fmtM(so)} m + sections ${fmtM(r.Lf)} m > ${fmtM(L)} m).`);
   else if (r.eo > 1e-6) r.msgs.push({ level: 'info', text: `Last ${fmtM(r.eo)} m of cable (mark ${fmtM(a)} to ${fmtM(L)} m) has no floats.` });
 
@@ -1255,9 +1261,9 @@ const extLine = (x, y1, y2, pal) => `<line x1="${x}" y1="${y1}" x2="${x}" y2="${
 function elevationSVG(p, r, si, pal = PAL_SCREEN) {
   if (!r.valid) return placeholderSVG('Enter cable, float and section details to see the side view', 1000, 300, pal);
   const sec = r.secs[si] || r.secs[0];
-  const W = 1000, H = 310, mL = 50, mR = 50, spans = 3, X = sec.X, flen = Math.max(0.05, r.flen);
+  const W = 1000, H = 310, mL = 50, mR = 50, spans = 3, X = sec.X, F = sec.f, flen = Math.max(0.05, sec.flen);
   const s = (W - mL - mR) / (spans * X + flen);
-  const fw = Math.max(5, flen * s), fh = clamp(num(r.f.dia, 0.6) * s, 16, 70);
+  const fw = Math.max(5, flen * s), fh = clamp(num(F.dia, 0.6) * s, 16, 70);
   const wl = 132, fy = wl - fh * 0.38, strop = 16, cy = fy + fh + strop;
   const sag = 8 + 34 * clamp(sec.util, 0, 1.5), over = sec.util > 1;
   const cw = clamp(num(p.cable.od, 150) / 1000 * s, 3, 10);
@@ -1275,15 +1281,15 @@ function elevationSVG(p, r, si, pal = PAL_SCREEN) {
   o += `<path d="${d}" style="fill:none;stroke:${over ? pal.bad : pal.cable};stroke-width:${cw};stroke-linecap:round"/>`;
   o += `<path data-hit="cable" d="${d}" style="fill:none;stroke:transparent;stroke-width:24"><title>Cable</title></path>`;
   o += `<text data-hit="cable" x="${(xs[0] + xs[1]) / 2}" y="${cy + sag + cw + 16}" text-anchor="middle" style="fill:${over ? pal.bad : pal.cable};font-size:11px;font-weight:800;letter-spacing:.08em">CABLE</text>`;
-  const tails = Math.max(1, sec.tailsPer), fname = r.f.name.length > 18 ? r.f.name.slice(0, 16) + '…' : r.f.name;
+  const tails = Math.max(1, sec.tailsPer), fname = F.name.length > 18 ? F.name.slice(0, 16) + '…' : F.name;
   xs.forEach(x => {
     o += `<g data-hit="sections"><title>Tails — ${sec.tailsPer} per float</title><rect x="${x - fw / 2 - 4}" y="${fy + fh * 0.6}" width="${fw + 8}" height="${cy - fy - fh * 0.6 + 4}" style="fill:transparent"/>`;
     for (let t = 0; t < tails; t++) {
       const tx = tails === 1 ? x : x - fw * 0.32 + (fw * 0.64) * t / (tails - 1);
       o += `<line x1="${tx}" y1="${fy + fh - 2}" x2="${x + (tx - x) * 0.4}" y2="${cy}" style="stroke:${pal.stroke};stroke-width:1.6"/>`;
     }
-    o += `</g><g data-hit="float"><title>${esc(r.f.name)}</title>${floatShapeSVG(r.f, x - fw / 2, fy, fw, fh, pal)}</g>`;
-    if (fw > 80) o += `<text x="${x}" y="${fy + fh / 2 + 4}" text-anchor="middle" style="fill:${contrastInk(r.f.colour)};font-size:11px;font-weight:800">${esc(fname)}</text>`;
+    o += `</g><g data-hit="float"><title>${esc(F.name)}</title>${floatShapeSVG(F, x - fw / 2, fy, fw, fh, pal)}</g>`;
+    if (fw > 80) o += `<text x="${x}" y="${fy + fh / 2 + 4}" text-anchor="middle" style="fill:${contrastInk(F.colour)};font-size:11px;font-weight:800">${esc(fname)}</text>`;
   });
   o += `<text data-hit="sections" x="${xs[0] + fw / 2 + 6}" y="${fy + fh + strop / 2 + 5}" style="fill:${pal.text};font-size:12px;font-weight:800">${sec.tailsPer} × tail${sec.tailsPer === 1 ? '' : 's'}</text>`;
   const dTop = fy - 30, dHigh = fy - 62, dBot = H - 26;
@@ -1498,6 +1504,12 @@ function fillPlannerInputs() {
   bs.value = bridleById(p.bridleId) ? p.bridleId : '';
   renderSections(); renderLights(); renderPlanVessels(); renderAttach();
 }
+function floatOptions(sel) {
+  const def = floatById(activePlan().floatId);
+  return `<option value="" ${sel ? '' : 'selected'}>Plan default${def ? ' — ' + esc(def.name) : ''}</option>`
+    + S.floats.map(f => `<option value="${f.id}" ${f.id === sel ? 'selected' : ''}>${esc(f.name)} · ${fmtM(num(f.netB))} kg</option>`).join('')
+    + '<option value="__new">+ New float type…</option>';
+}
 function renderSections() {
   const p = activePlan(), n = p.sections.length;
   $('#sections').innerHTML = p.sections.map((s, i) => `
@@ -1517,8 +1529,9 @@ function renderSections() {
         <label>Weight in seawater<div class="unit-wrap"><input data-key="w" type="number" min="0" step="0.1" value="${esc(s.w)}"><i>kg/m</i></div><span class="hint">submerged, incl. CPS etc.</span></label>
         <label>Float every<div class="unit-wrap"><input data-key="spacing" type="number" min="0" step="0.05" value="${esc(s.spacing)}"><i>m</i></div><span class="hint" data-out="hint"></span></label>
         <label>Tails per float<input data-key="tails" type="number" min="0" step="1" value="${esc(s.tails)}"><span class="hint">binding ropes per float</span></label>
+        <label class="span2">Float<select data-key="floatId">${floatOptions(s.floatId)}</select></label>
         <label class="span2">Tail spec<input data-key="tailSpec" value="${esc(s.tailSpec)}" placeholder="e.g. 12 mm polysteel, 3 m, eye one end"></label>
-        <label class="span2">Why this spacing / tails<input data-key="why" value="${esc(s.why)}" placeholder="e.g. CPS adds 9 kg/m — closer spacing, 3 tails to stop floats rolling"></label>
+        <label style="grid-column:1/-1">Why this spacing / float / tails<input data-key="why" value="${esc(s.why)}" placeholder="e.g. CPS adds 9 kg/m — closer spacing, 3 tails to stop floats rolling"></label>
       </div>
       <div class="sec-out" data-out="out"></div>
     </div>`).join('');
@@ -1553,7 +1566,7 @@ function updatePlannerOutputs() {
     const over = sr.X > sr.xSafe + 1e-9;
     hint.innerHTML = `<span class="${sr.util > 1 ? 'bad' : over ? 'warn' : 'ok'}" style="font-weight:700">safe ${fmt(sr.xSafe, 2)} m</span> · max ${fmt(sr.xMax, 2)}${Math.abs(sr.xSafe - sr.X) > 1e-9 ? ` <button class="btn" data-sact="use" title="Use the cascade-safe spacing">use ${fmt(sr.xSafe, 2)}</button>` : ''}`;
     const uc = sr.util > 1 ? 'bad' : sr.util > 0.9 ? 'warn' : 'ok';
-    out.innerHTML = `<span><b>${fmtInt(sr.count)}</b> floats</span><span><b>${fmtInt(sr.tails)}</b> tails</span>
+    out.innerHTML = `<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid #000;margin-right:6px;background:${safeColour(sr.f.colour)}"></i><b>${esc(sr.f.name)}</b> · ${fmtM(sr.B)} kg</span><span><b>${fmtInt(sr.count)}</b> floats</span><span><b>${fmtInt(sr.tails)}</b> tails</span>
       <span>load <b class="${uc}">${fmt(sr.load, 0)} kg · ${fmt(sr.util * 100, 0)}%</b></span>
       <span>one float lost <b class="${sr.utilN1 > 1 ? 'warn' : 'ok'}">${fmt(sr.utilN1 * 100, 0)}%</b></span>
       <span>gap <b class="${sr.edgeGap < 0 ? 'bad' : ''}">${fmt(sr.edgeGap, 2)} m</b></span>`;
@@ -1742,7 +1755,7 @@ function addSection() {
   const p = activePlan(), last = p.sections[p.sections.length - 1] || defaultSection();
   const used = p.sections.reduce((t, x) => t + num(x.length), 0);
   const rest = num(p.cable.length) - num(p.startOffset) - used;
-  p.sections.push(defaultSection({ length: rest > 0 ? Math.round(rest) : 100, w: last.w, spacing: last.spacing, tails: last.tails, tailSpec: last.tailSpec }));
+  p.sections.push(defaultSection({ floatId: last.floatId || '', length: rest > 0 ? Math.round(rest) : 100, w: last.w, spacing: last.spacing, tails: last.tails, tailSpec: last.tailSpec }));
   PL.sec = p.sections.length - 1;
   const r = calc(p), sr = r.secs?.[PL.sec]; if (sr) p.sections[PL.sec].spacing = sr.xSafe;
   save(); renderSections(); updatePlannerOutputs();
@@ -2148,7 +2161,7 @@ function readImage(file, max = 900, q = 0.85) {
 }
 
 /* ---------------- libraries ---------------- */
-const usedBy = (key, id) => S.plans.filter(p => p[key] === id);
+const usedBy = (key, id) => S.plans.filter(p => p[key] === id || (key === 'floatId' && p.sections.some(s => s.floatId === id)));
 function libPhoto(img, fallback) { const s = safeImg(img); return `<div class="photo" style="${s ? `background-image:url('${s}')` : ''}">${s ? '' : fallback}</div>`; }
 function renderFloats() {
   const el = $('#floatList');
@@ -2253,6 +2266,7 @@ function libraryAction(kind, act, id) {
     list.splice(list.indexOf(item), 1);
     if (kind === 'vessel') S.plans.forEach(p => p.vessels.forEach(a => { if (a.vesselId === id) a.vesselId = ''; }));
     if (kind === 'bridle') u.forEach(p => p.bridleId = '');
+    if (kind === 'float') S.plans.forEach(p => p.sections.forEach(s => { if (s.floatId === id) s.floatId = ''; }));
   }
   save(); afterLibraryChange();
 }
@@ -2285,7 +2299,7 @@ function renderPlans() {
     const label = { ok: 'OK', warn: 'Check', bad: 'Fails' }[st];
     return `<tr class="${p.id === S.activePlanId ? 'active' : ''}">
       <td><b>${esc(p.name || 'Untitled plan')}</b><div class="small muted">${esc(p.cable.desc || '—')}</div></td>
-      <td>${r.f ? esc(r.f.name) : '<span class="bad">none</span>'}</td>
+      <td>${r.valid ? r.floatsUsed.map(x => esc(x.f.name)).join('<br>') : (r.f ? esc(r.f.name) : '<span class="bad">none</span>')}</td>
       <td class="num">${fmtM(num(p.cable.length))} m</td>
       <td class="num">${p.sections.map(s => fmt(num(s.spacing), 2)).join(' / ')} m</td>
       <td class="num">${r.valid ? `${fmtInt(r.n)} <span class="muted">+${fmtInt(r.spares)}</span>` : '–'}</td>
@@ -2362,6 +2376,7 @@ function sheetPagesFor(p) {
   const secRows = r.secs.map((s, i) => `<tr>
       <td class="nm"><i style="background:${s.colour}"></i>${i + 1}. ${esc(s.name)}</td>
       <td class="mk">${fmtM(s.from)} → ${fmtM(s.to)} m</td>
+      <td><span class="sw" style="display:inline-block;width:9pt;height:9pt;border:1px solid #000;vertical-align:-1px;margin-right:3px;background:${safeColour(s.f.colour)}"></span><b>${esc(s.f.name)}</b></td>
       <td class="hv">${fmt(s.X, 2)} m</td>
       <td class="mk">${fmtInt(s.count)}</td>
       <td class="hv">${s.tailsPer}</td>
@@ -2375,16 +2390,16 @@ function sheetPagesFor(p) {
       <div><span>Last float at</span>${big(fmtM(r.lastMark) + ' m')}<em>cable mark</em></div>
       <div><span>Bridles</span>${bridleKey}</div>
     </div>
-    <table class="sh-secs"><thead><tr><th>Section</th><th>Cable marks</th><th>Float every</th><th>Floats</th><th>Tails / float</th><th>Tail spec</th><th>Why</th></tr></thead>
-      <tbody>${secRows}${r.secs.length > 1 ? `<tr class="tot"><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td>${fmtInt(r.n)}</td><td>${fmtInt(r.tails)}</td><td colspan="2"></td></tr>` : ''}</tbody></table>
+    <table class="sh-secs"><thead><tr><th>Section</th><th>Cable marks</th><th>Float</th><th>Float every</th><th>Floats</th><th>Tails / float</th><th>Tail spec</th><th>Why</th></tr></thead>
+      <tbody>${secRows}${r.secs.length > 1 ? `<tr class="tot"><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td></td><td>${fmtInt(r.n)}</td><td>${fmtInt(r.tails)}</td><td colspan="2"></td></tr>` : ''}</tbody></table>
     ${r.lights.length ? `<table class="sh-lights"><thead><tr><th>Light</th><th>Character</th><th>Range</th><th>Fitted on</th><th>Number</th></tr></thead><tbody>
       ${r.lights.map(l => `<tr><td><span class="lc" style="background:${l.colour}"></span><b>${esc(l.L.name)}</b></td><td><b>${esc(l.L.character)}</b></td><td>${fmt(num(l.L.range), 1)} nm</td>
         <td>${l.L.at === 'floats' ? (num(l.L.everyN) <= 1 ? 'every float' : `every ${fmtInt(num(l.L.everyN))} floats`) : l.L.at === 'ends' ? 'first and last float' : l.L.at === 'sections' ? 'first float of each section + last float' : 'every bridle'}</td><td><b>${fmtInt(l.marks.length)}</b></td></tr>`).join('')}</tbody></table>` : ''}
-    <div class="sh-items">
-      <div class="sh-item">${ph(f.image, floatIconSVG(f))}<div><h5>Float — same type throughout</h5><div class="nm">${esc(f.name)}</div>
-        <div class="ln"><span class="sw" style="background:${safeColour(f.colour)}"></span>${f.shape === 'round' ? 'Round' : 'Rectangular'} · ${fmt(num(f.length), 2)} × ${fmt(num(f.dia), 2)} m</div>
-        <div class="ln">Net buoyancy <b>${fmtM(num(f.netB))} kg</b></div>
-        ${f.attach ? `<div class="ln"><b>Attach:</b> ${esc(f.attach)}</div>` : ''}</div></div>
+    <div class="sh-items" style="grid-template-columns:repeat(${Math.min(4, r.floatsUsed.length + 2)},1fr)">
+      ${r.floatsUsed.map(({ f: F, count, names }) => `<div class="sh-item">${ph(F.image, floatIconSVG(F))}<div><h5>Float${r.floatsUsed.length > 1 ? ' — ' + esc(names.join(', ')) : ' — same type throughout'}</h5><div class="nm">${esc(F.name)}</div>
+        <div class="ln"><span class="sw" style="background:${safeColour(F.colour)}"></span>${F.shape === 'round' ? 'Round' : 'Rectangular'} · ${fmt(num(F.length), 2)} × ${fmt(num(F.dia), 2)} m</div>
+        <div class="ln">Net buoyancy <b>${fmtM(num(F.netB))} kg</b> · <b>${fmtInt(count)}</b> to fit</div>
+        ${F.attach ? `<div class="ln"><b>Attach:</b> ${esc(F.attach)}</div>` : ''}</div></div>`).join('')}
       <div class="sh-item">${b ? ph(b.image, bridleIconSVG()) : ''}<div><h5>Bridle</h5>
         ${b ? `<div class="nm">${esc(b.name)}</div><div class="ln">SWL <b>${fmt(num(b.swl), 1)} t</b></div>${b.notes ? `<div class="ln" style="white-space:pre-line">${esc(b.notes)}</div>` : ''}<div class="ln">Fit <b>between floats</b>, every ${fmtM(num(p.bridleInterval))} m — first near mark ${fmtM(r.bridles[0]?.mark ?? 0)} m.</div>`
             : '<div class="nm">None</div>'}</div></div>
@@ -2392,7 +2407,6 @@ function sheetPagesFor(p) {
         <div class="ln">Length <b>${fmtM(r.L)} m</b> · OD ${fmtM(num(p.cable.od))} mm</div>
         <div class="ln">No floats: first ${fmtM(r.so)} m${r.eo > 0 ? `, last ${fmtM(r.eo)} m` : ''}</div></div></div>
     </div>
-    <div class="sh-box" style="flex:none"><h5>Whole cable — first end on the left${r.b ? ' · ◆ = bridle' : ''}</h5><div class="in" style="padding:1mm 2mm">${overviewSVG(p, r, PAL_PRINT)}</div></div>
     ${p.remarks ? `<div class="sh-note"><b>Remarks:</b> ${esc(p.remarks)}</div>` : ''}`);
 
   const at = p.attach;
@@ -2404,12 +2418,13 @@ function sheetPagesFor(p) {
   }
   for (let i = 0; i < r.secs.length; i += 2) {
     const views = r.secs.slice(i, i + 2).map(s => `<div class="sh-diagram"><h5>Side view — ${esc(s.name)} · float every ${fmt(s.X, 2)} m · ${s.tailsPer} tail${s.tailsPer === 1 ? '' : 's'} per float${s.s.tailSpec ? ` (${esc(s.s.tailSpec)})` : ''} · marks ${fmtM(s.from)}–${fmtM(s.to)} m</h5><div class="svg">${elevationSVG(p, r, s.i, PAL_PRINT)}</div></div>`).join('');
-    pages.push(`${head('Side views — float size and spacing to scale')}<div class="sh-views" style="${r.secs.length - i === 1 ? 'grid-template-rows:1fr' : ''}">${views}</div>`);
+    pages.push(`${head('Side views — float size and spacing to scale')}<div class="sh-views" style="${r.secs.length - i === 1 ? 'grid-template-rows:1fr' : ''}">${views}</div>
+      ${i === 0 ? `<div class="sh-box" style="flex:none;margin-top:3mm"><h5>Whole cable — first end on the left${r.b ? ' · ◆ = bridle' : ''}</h5><div class="in" style="padding:1mm 2mm">${overviewSVG(p, r, PAL_PRINT)}</div></div>` : ''}`);
   }
 
   const checks = `<table>
-      <tr><td>Float net buoyancy / SF</td><td>${fmt(r.B, 0)} kg / ${fmt(r.SF, 2)}</td></tr>
-      ${r.secs.map(s => `<tr><td>${esc(s.name)} — ${fmt(s.W, 1)} kg/m @ ${fmt(s.X, 2)} m</td><td>${fmt(s.load, 0)} kg · ${fmt(s.util * 100, 0)}% (1 lost: ${fmt(s.utilN1 * 100, 0)}%)</td></tr>`).join('')}
+      <tr><td>Safety factor</td><td>${fmt(r.SF, 2)}</td></tr>
+      ${r.secs.map(s => `<tr><td>${esc(s.name)} — ${fmt(s.W, 1)} kg/m @ ${fmt(s.X, 2)} m, ${fmtM(s.B)} kg float</td><td>${fmt(s.load, 0)} kg · ${fmt(s.util * 100, 0)}% (1 lost: ${fmt(s.utilN1 * 100, 0)}%)</td></tr>`).join('')}
       <tr><td>Total lift ÷ cable weight</td><td>× ${fmt(r.reserve, 2)}</td></tr>
       ${r.route ? `<tr><td>Route length / floated cable</td><td>${fmtM(Math.round(r.route.length))} / ${fmtM(r.Lf)} m</td></tr>` : ''}
       ${hasGeo(p.route.geo) ? `<tr><td>Route start (first float)</td><td>${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}</td></tr>` : ''}
@@ -2477,10 +2492,11 @@ function loadDemo() {
   const br = { ...defaultBridle(), name: 'Demo — 10 t two-leg tow bridle', swl: 10, notes: '2 × 5 m 24 mm legs to 13.5 t shackle, lashed either side of the span' };
   const v1 = { ...defaultVessel(), name: 'Demo Tug Mars', type: 'Tug', callSign: '2ABC4', power: 45, powerUnit: 't BP', length: 32 };
   const v2 = { ...defaultVessel(), name: 'Demo Multicat', type: 'Multicat', callSign: 'MCX9', power: 20, powerUnit: 't BP', length: 26 };
-  S.floats.push(fl); S.bridles.push(br); S.vessels.push(v1, v2);
+  const fl2 = { ...defaultFloat(), name: 'Demo — 500 kg block float', netB: 500, length: 1.0, dia: 0.75, colour: '#ff9f1c', attach: 'Float on top of cable, three tails' };
+  S.floats.push(fl, fl2); S.bridles.push(br); S.vessels.push(v1, v2);
   const p = { ...defaultPlan(fl.id), name: 'Demo — second end omega', cable: { desc: '220 kV export cable (demo)', length: 1500, od: 150 }, startOffset: 50,
     sections: [defaultSection({ name: 'Bare cable', length: 900, w: 34, spacing: 5.75, tails: 2, tailSpec: '12 mm polysteel, 3 m', why: 'Cascade-safe spacing for bare cable' }),
-               defaultSection({ name: 'CPS fitted', length: 550, w: 43, spacing: 4.5, tails: 3, tailSpec: '12 mm polysteel, 3 m', why: 'CPS adds 9 kg/m — closer spacing, third tail stops the float rolling' })],
+               defaultSection({ name: 'CPS fitted', floatId: fl2.id, length: 550, w: 43, spacing: 7.5, tails: 3, tailSpec: '12 mm polysteel, 3 m', why: 'CPS adds 9 kg/m — 500 kg float, third tail stops it rolling' })],
     bridleId: br.id, bridleInterval: 200, bridleFirst: 100, sparesPct: 5,
     lights: [defaultLight({ name: 'LED buoy light', character: 'Fl Y 5s', range: 2, at: 'floats', everyN: 10 }), defaultLight({ name: 'Bridle light', character: 'Fl Y 2.5s', range: 3, at: 'bridles' })],
     attach: { ref: 'Demo procedure PRC-000 §7', text: '1. Sit the float on top of the cable.\n2. Pass each tail through both float eyes.\n3. Two round turns and two half hitches on the cable.\n4. Fit the light on the marked floats before launch.', images: [] },
@@ -2524,6 +2540,11 @@ function init() {
     const sk = e.target.dataset.key, secEl = e.target.closest('.sec');
     if (sk && secEl) {
       const s = activePlan().sections[+secEl.dataset.i];
+      if (sk === 'floatId' && e.target.value === '__new') {
+        e.target.value = s.floatId || '';
+        openEditor('float', null, nid => { s.floatId = nid; setTimeout(() => { renderSections(); updatePlannerOutputs(); }, 0); });
+        return;
+      }
       s[sk] = SEC_NUM.includes(sk) ? (e.target.value === '' ? '' : num(e.target.value)) : e.target.value;
       save(); updatePlannerOutputs(); return;
     }
@@ -2537,6 +2558,7 @@ function init() {
     const p = activePlan(), v = el.hasAttribute('data-num') ? (el.value === '' ? '' : num(el.value)) : el.value;
     setPath(p, el.dataset.path, v);
     if (el.dataset.path === 'name') renderPlanSelect();
+    if (el.dataset.path === 'floatId') renderSections();
     save(); updatePlannerOutputs();
   });
   $('#btnAddSection').onclick = addSection;
