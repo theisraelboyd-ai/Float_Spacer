@@ -6,17 +6,17 @@
 <title>Float Spacer</title>
 <style>
 :root{
-  --bg:#0b1116; --surface:#111a21; --surface-2:#16222b; --border:#24353f; --text:#e7eef2; --muted:#93a5b0;
+  --bg:#0b1116; --surface:#111a21; --surface-2:#16222b; --border:#2c4250; --text:#eef4f7; --muted:#b9c8d0;
   --accent:#22c3d6; --accent-ink:#04252b;
   --cable:#d9e2e6; --water:#3b8fd0; --water-fill:rgba(59,143,208,.16); --bridle:#c084fc;
   --ok:#3ddc84; --warn:#f5c542; --bad:#ff5d5d; --grid:rgba(147,165,176,.14); --input:#0d161c;
   --shadow:0 1px 0 rgba(255,255,255,.03) inset;
 }
 :root[data-theme="light"]{
-  --bg:#eef2f4; --surface:#ffffff; --surface-2:#f6f9fa; --border:#d5dee3; --text:#152229; --muted:#5d707a;
+  --bg:#eef2f4; --surface:#ffffff; --surface-2:#f6f9fa; --border:#c3cfd6; --text:#0f1b21; --muted:#3f5560;
   --accent:#0a8fa0; --accent-ink:#ffffff;
   --cable:#1d2a31; --water:#1f6fb0; --water-fill:rgba(31,111,176,.10); --bridle:#8b3fd9;
-  --ok:#1a9a50; --warn:#b98500; --bad:#d62f2f; --grid:rgba(21,34,41,.08); --input:#f3f6f8;
+  --ok:#1a9a50; --warn:#b98500; --bad:#d62f2f; --grid:rgba(21,34,41,.10); --input:#ffffff;
   --shadow:0 1px 3px rgba(0,0,0,.05);
 }
 *{box-sizing:border-box}
@@ -327,6 +327,50 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .sh-ves th{background:#000;color:#fff;font-size:7pt;text-transform:uppercase;padding:.8mm 1.5mm;text-align:left}
 .sh-ves td{border:1px solid #888;padding:.8mm 1.5mm;text-align:left!important;font-weight:400!important}
 
+/* ---------- v4 additions ---------- */
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+.sec-grid label,.assign label{color:var(--text);font-weight:650;font-size:12.5px}
+.sec-grid .hint{color:var(--muted);font-weight:500;font-size:12px;flex-wrap:wrap;row-gap:2px}
+.sec-out{color:var(--text);font-size:13.5px}
+.sec-out span{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 10px}
+.field>span{color:var(--text);font-weight:600}
+.field>span em{color:var(--muted);font-weight:500}
+.handle .hv{fill:var(--accent);fill-opacity:.95;transition:transform .12s ease;transform-box:fill-box;transform-origin:center}
+.handle:hover .hv{fill:#ffd60a;transform:scale(1.8);animation:hpulse .8s ease-in-out infinite}
+@keyframes hpulse{50%{fill:#ff8a00}}
+.vessel:hover polygon{filter:drop-shadow(0 0 4px #f97316)}
+.vrot:hover circle{fill:#f97316}
+#routeSvgWrap{position:relative}
+#routeSvg{width:100%;height:100%}
+#cursorPos{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;z-index:2;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font:600 12px/1.5 ui-monospace,Menlo,Consolas,monospace;pointer-events:none}
+#cursorPos:empty{display:none}
+#geoResults button{display:block;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;margin-bottom:4px;cursor:pointer;font-size:12.5px}
+#geoResults button:hover{border-color:var(--accent)}
+.light-row,.pv-row{display:grid;gap:10px;align-items:end;padding:10px 0;border-bottom:1px solid var(--border)}
+.light-row{grid-template-columns:minmax(150px,1.3fr) 110px minmax(110px,.9fr) 90px minmax(170px,1.2fr) 110px auto}
+.light-row label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:650}
+.light-row .cnt{font-size:13px;padding-bottom:8px;white-space:nowrap}
+@media (max-width:1100px){.light-row{grid-template-columns:1fr 1fr 1fr}}
+.pv-row{grid-template-columns:58px 1fr auto;align-items:center}
+.pv-row .thumb{width:58px;height:44px}
+.pv-row b{font-size:14px}
+.pv-row .meta{font-size:12.5px;color:var(--muted)}
+.pv-row .meta strong{color:var(--text)}
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:10px}
+.att-grid figure{margin:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.att-grid img{display:block;width:100%;height:170px;object-fit:contain;background:#fff}
+.att-grid figcaption{display:flex;gap:6px;padding:6px}
+.vd-sec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.vd-sec h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sh-att{display:grid;grid-template-columns:repeat(2,1fr);gap:3mm;flex:1;min-height:0}
+.sh-att figure{margin:0;border:1.5px solid #000;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
+.sh-att img{flex:1;min-height:0;min-width:0;width:100%;max-width:100%;object-fit:contain}
+.sh-att figcaption{font-size:9pt;font-weight:700;padding:1mm 2mm;border-top:1px solid #000}
+.sh-lights{width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:3mm}
+.sh-lights th{background:#000;color:#fff;font-size:7.5pt;text-transform:uppercase;letter-spacing:.05em;padding:1mm 2mm;text-align:left}
+.sh-lights td{border:1.5px solid #000;padding:1mm 2mm}
+.sh-lights .lc{display:inline-block;width:10pt;height:10pt;border-radius:50%;border:1px solid #000;vertical-align:-2px;margin-right:4px}
+
 /* ---------- toast ---------- */
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:650;font-size:13px;transition:.25s;z-index:50;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -395,6 +439,9 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
     <button data-panel="float"><i id="ptFloat"></i>Float &amp; safety factor</button>
     <button data-panel="sections"><i style="background:#38b2ac"></i>Sections · spacing · tails</button>
     <button data-panel="bridles"><i style="background:var(--bridle)"></i>Bridles</button>
+    <button data-panel="lights"><i style="background:#ffd60a;border-radius:50%"></i>Lights</button>
+    <button data-panel="vessels"><i style="background:#f97316"></i>Support vessels</button>
+    <button data-panel="attach"><i style="background:var(--muted)"></i>Attachment detail</button>
     <button data-panel="notes"><i style="background:var(--muted)"></i>Remarks</button>
   </div>
   <div class="panels" id="panels">
@@ -417,7 +464,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
           <div class="thumb" id="floatThumb"></div>
           <div style="flex:1;display:flex;flex-direction:column;gap:6px">
             <select id="floatSelect" data-path="floatId" aria-label="Float type"></select>
-            <div class="row small muted"><span id="floatSummary"></span><button class="btn sm" data-goto="floats" style="margin-left:auto">Edit library</button></div>
+            <div class="row small muted"><span id="floatSummary"></span><button class="btn sm" id="btnEditFloat" style="margin-left:auto">Edit this float</button></div>
           </div>
         </div>
         <div>
@@ -435,15 +482,38 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 
     <div class="card panel" data-panel="bridles">
       <div class="card-h"><h2 style="color:var(--bridle)">Bridles</h2><span class="small muted">fitted between floats, in the span nearest each mark</span>
-        <button class="btn sm" data-goto="bridles" style="margin-left:auto">Edit bridle library</button></div>
+        <button class="btn sm" id="btnEditBridle" style="margin-left:auto">Edit this bridle</button></div>
       <div class="pgrid">
-        <label class="field wide"><span>Bridle type</span><select id="bridleSelect" data-path="bridleId" aria-label="Bridle type"></select></label>
+        <div class="float-pick"><div class="thumb" id="bridleThumb"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px"><select id="bridleSelect" data-path="bridleId" aria-label="Bridle type"></select><span class="small muted" id="bridleSummary"></span></div></div>
         <fieldset id="bridleFields">
           <label class="field"><span>Bridle every</span><div class="unit-wrap"><input data-path="bridleInterval" data-num type="number" step="10" min="0"><i>m</i></div></label>
           <label class="field"><span>First bridle<em>distance from first float</em></span><div class="unit-wrap"><input data-path="bridleFirst" data-num type="number" step="10" min="0"><i>m</i></div></label>
         </fieldset>
       </div>
       <div class="small muted" id="bridleNote"></div>
+    </div>
+
+    <div class="card panel" data-panel="lights">
+      <div class="card-h"><h2>Lights</h2><span class="small muted">navigation lights on floats and bridles — shown on every drawing and the deck sheet</span>
+        <button class="btn sm primary" id="btnAddLight" style="margin-left:auto">+ Add light</button></div>
+      <div id="lightList"></div>
+    </div>
+
+    <div class="card panel" data-panel="vessels">
+      <div class="card-h"><h2>Support vessels</h2><span class="small muted">set each vessel's job, tow connection and heading here — position it on Route &amp; Layout</span>
+        <button class="btn sm primary" id="btnAddPlanVessel" style="margin-left:auto">+ Add vessel</button></div>
+      <div id="planVessels"></div>
+    </div>
+
+    <div class="card panel" data-panel="attach">
+      <div class="card-h"><h2>Float attachment detail</h2><span class="small muted">from the procedure — printed on its own deck sheet page</span></div>
+      <div class="pgrid">
+        <label class="field wide"><span>Procedure / drawing reference</span><input data-path="attach.ref" placeholder="e.g. PRC-0123 rev B, section 7.4"></label>
+        <label class="field wide"><span>Detail text</span><textarea data-path="attach.text" placeholder="Step by step: position float on cable, pass tails through eyes, two round turns and two half hitches…" style="min-height:90px"></textarea></label>
+      </div>
+      <div class="att-grid" id="attachImages"></div>
+      <label class="btn sm" style="margin-top:10px">+ Add images<input type="file" id="attachFile" accept="image/*" multiple hidden></label>
     </div>
 
     <div class="card panel" data-panel="notes">
@@ -482,7 +552,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
         <button class="btn sm" id="rtFitView">Fit view</button>
         <button class="btn sm danger" id="rtClear">Clear</button>
       </div>
-      <div id="routeSvgWrap"></div>
+      <div id="routeSvgWrap"><div id="routeSvg"></div><div id="cursorPos"></div></div>
       <div class="route-help">
         <span id="placeBanner"></span><b>Draw:</b> click to add a point to the end · <b>Shift + click</b> inserts into the nearest leg · drag a point to move it · double-click a point to delete it · scroll to zoom.
         The drawn line is the <b>floated length</b>, starting at the first float; it is coloured by cable section.
@@ -510,10 +580,33 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
         <label class="field"><span>End label</span><input data-rpath="endLabel" placeholder="Vessel"></label>
       </div>
       <div class="card">
-        <div class="card-h"><h2>Background chart</h2></div>
-        <div class="small muted" style="margin-bottom:8px">Trace over a chart, survey or seabed image. Set the width it covers in metres.</div>
+        <div class="card-h"><h2>Chart &amp; position</h2></div>
+        <div class="small muted" style="margin-bottom:8px">Put the route start (first float) on a real position, then add a map, a chart image or a vector overlay underneath.</div>
+        <div class="row" style="margin-bottom:8px"><input id="geoSearch" placeholder="Search a place, e.g. Kyleakin"><button class="btn sm" id="geoFind">Find</button></div>
+        <div id="geoResults"></div>
+        <label class="field"><span>Start latitude</span><input id="geoLat" placeholder="57 16.500 N"></label>
+        <label class="field"><span>Start longitude</span><input id="geoLon" placeholder="005 43.200 W"></label>
+        <div class="row" style="margin-bottom:10px"><button class="btn sm primary" id="geoSet">Set position</button><button class="btn sm danger" id="geoClear">Clear</button></div>
+        <div id="geoControls">
+          <label class="field"><span>Map</span><select id="geoBase"><option value="none">None</option><option value="osm">OpenStreetMap</option><option value="sat">Satellite</option></select></label>
+          <label class="field"><span>Seamarks<em>OpenSeaMap overlay</em></span><input type="checkbox" id="geoSea" style="width:auto;justify-self:end"></label>
+          <label class="field"><span>Map opacity</span><input id="geoOpacity" type="range" min="0.1" max="1" step="0.05"></label>
+          <div class="small muted" style="margin:4px 0 6px"><b>Vector chart</b> — GeoJSON or KML (lines, areas, points)</div>
+          <div class="row"><label class="btn sm">Load overlay<input type="file" id="ovFile" accept=".geojson,.json,.kml" hidden></label><button class="btn sm danger" id="ovRemove">Remove overlay</button></div>
+          <div class="row" style="margin-top:10px"><button class="btn sm" id="expCsv">Export positions (.csv)</button><button class="btn sm" id="expGeo">Export route (.geojson)</button></div>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--border);margin:14px 0">
+        <div class="small muted" style="margin-bottom:6px"><b>Chart / survey image</b> — raster to trace over</div>
         <input type="file" id="bgFile" accept="image/*">
         <div id="bgControls" style="margin-top:10px">
+          <div id="bgGeo">
+            <div class="small muted" style="margin-bottom:6px">Pin by its corners (lat / long):</div>
+            <label class="field"><span>Top-left lat</span><input id="bgTLlat"></label>
+            <label class="field"><span>Top-left long</span><input id="bgTLlon"></label>
+            <label class="field"><span>Bottom-right lat</span><input id="bgBRlat"></label>
+            <label class="field"><span>Bottom-right long</span><input id="bgBRlon"></label>
+            <button class="btn sm" id="bgPin" style="margin-bottom:10px">Pin image to corners</button>
+          </div>
           <label class="field"><span>Image width</span><div class="unit-wrap"><input data-bg="widthM" type="number" step="10" min="1"><i>m</i></div></label>
           <label class="field"><span>Left edge (x)</span><div class="unit-wrap"><input data-bg="x" type="number" step="10"><i>m</i></div></label>
           <label class="field"><span>Top edge (y)</span><div class="unit-wrap"><input data-bg="y" type="number" step="10"><i>m</i></div></label>
@@ -547,12 +640,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 
 <!-- ================= VESSELS ================= -->
 <section class="tab" id="tab-vessels">
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-h"><h2>Support vessels in this plan</h2><span class="small muted" id="vesPlanName"></span>
-      <button class="btn sm primary" id="btnAssignVessel" style="margin-left:auto">+ Add vessel to plan</button></div>
-    <div id="assignList"></div>
-    <p class="small muted" style="margin:10px 0 0">Set where each vessel works on the <b>Route &amp; Layout</b> tab: press <b>Place</b>, then click the map. Link a vessel to a bridle to draw its tow line.</p>
-  </div>
+  <p class="muted" style="margin:0 0 14px">Vessels are added to a plan from the <b>Planner → Support vessels</b> panel, where the job, tow connection and heading are set. This page keeps the vessel details.</p>
   <div class="lib-head">
     <h2>Vessel library</h2>
     <p>Set up each support vessel once — tugs, multicats, workboats, guard vessels — then add them to any plan.</p>
@@ -651,9 +739,14 @@ function contrastInk(hex) {
 const defaultFloat  = () => ({ id: uid(), name: 'Example float', netB: 200, length: 0.8, dia: 0.6, shape: 'rect', colour: '#ffd60a', image: '', attach: '' });
 const defaultBridle = () => ({ id: uid(), name: 'Example bridle', swl: 10, image: '', notes: '' });
 const VESSEL_TYPES = ['Tug', 'Multicat', 'Workboat', 'Guard vessel', 'Crew transfer vessel', 'Dive support vessel', 'RIB / fast rescue craft', 'Survey vessel', 'Other'];
-const defaultVessel = () => ({ id: uid(), name: 'Example tug', type: 'Tug', callSign: '', power: 20, powerUnit: 't BP', mode: 'flexible', image: '', notes: '' });
-const defaultAssign = (o = {}) => ({ id: uid(), vesselId: '', task: '', mode: '', radius: 50, bridle: -1, x: null, y: null, ...o });
-const defaultRoute  = () => ({ type: 'straight', points: null, view: null, bg: null, startLabel: '', endLabel: '' });
+const defaultVessel = () => ({ id: uid(), name: '', type: 'Tug', callSign: '', power: 20, powerUnit: 't BP', length: 30, image: '', notes: '' });
+const defaultAssign = (o = {}) => ({ id: uid(), vesselId: '', task: '', mode: 'flexible', radius: 50, link: 'none', bridle: 0, dist: 100, conn: 'stern', heading: 0, x: null, y: null, ...o });
+const defaultGeo    = () => ({ lat: null, lon: null, base: 'none', seamarks: false, opacity: 1, overlay: null });
+const defaultRoute  = () => ({ type: 'straight', points: null, view: null, bg: null, startLabel: '', endLabel: '', geo: defaultGeo() });
+const LIGHT_COLOURS = [['#ffd60a', 'Yellow'], ['#ffffff', 'White'], ['#ff3b30', 'Red'], ['#34c759', 'Green'], ['#3a86ff', 'Blue']];
+const LIGHT_AT = [['floats', 'Floats — every …'], ['ends', 'First and last float'], ['sections', 'Each section change'], ['bridles', 'Every bridle']];
+const defaultLight = (o = {}) => ({ id: uid(), name: 'LED buoy light', colour: '#ffd60a', character: 'Fl Y 5s', range: 2, at: 'floats', every: 100, ...o });
+const defaultAttach = () => ({ ref: '', text: '', images: [] });
 const defaultSection = (o = {}) => ({ id: uid(), name: '', length: 1000, w: 34, spacing: 5, tails: 2, tailSpec: '', why: '', ...o });
 const SECTION_COLOURS = ['#38b2ac', '#e0864a', '#b67ad6', '#7fb24a', '#4f8fd6', '#d1a93a', '#d65f8a', '#5aa58f'];
 const secColour = i => SECTION_COLOURS[i % SECTION_COLOURS.length];
@@ -663,7 +756,7 @@ const defaultPlan = (floatId = '') => ({
   sections: [defaultSection({ name: 'Bare cable' })],
   floatId, sf: 1.2, startOffset: 0, sparesPct: 5,
   bridleId: '', bridleInterval: 200, bridleFirst: 100,
-  remarks: '', route: defaultRoute(), vessels: []
+  remarks: '', route: defaultRoute(), vessels: [], lights: [], attach: defaultAttach()
 });
 const defaultProject = () => ({ name: '', vessel: '', client: '', docNo: '', rev: 'A', date: today(), preparedBy: '', approvedBy: '' });
 
@@ -674,7 +767,8 @@ function normaliseState(raw) {
   const st = { version: 2, project: { ...defaultProject(), ...(raw.project || {}) }, floats: [], bridles: [], plans: [], activePlanId: raw.activePlanId };
   (raw.floats || []).forEach(f => st.floats.push({ ...defaultFloat(), ...f, colour: safeColour(f.colour), image: safeImg(f.image), shape: f.shape === 'round' ? 'round' : 'rect' }));
   (raw.bridles || []).forEach(b => st.bridles.push({ ...defaultBridle(), ...b, image: safeImg(b.image) }));
-  st.vessels = (raw.vessels || []).map(v => ({ ...defaultVessel(), ...v, image: safeImg(v.image), mode: v.mode === 'fixed' ? 'fixed' : 'flexible' }));
+  const oldVesselMode = {};
+  st.vessels = (raw.vessels || []).map(v => { oldVesselMode[v.id] = v.mode; const o = { ...defaultVessel(), ...v, image: safeImg(v.image) }; delete o.mode; return o; });
   (raw.plans || []).forEach(p => {
     const d = defaultPlan();
     const route = { ...d.route, ...(p.route || {}) };
@@ -684,8 +778,18 @@ function normaliseState(raw) {
       : [defaultSection({ name: 'Main', length: Math.max(1, num(p.cable?.length, 1000) - num(p.startOffset) - num(p.endOffset)),
                           w: num(p.cable?.w, 34), spacing: num(p.spacing, 5) })];
     sections.forEach(s => { if (!s.id) s.id = uid(); });
-    const vessels = Array.isArray(p.vessels) ? p.vessels.map(a => defaultAssign(a)) : [];
-    const plan = { ...d, ...p, cable: { ...d.cable, ...(p.cable || {}) }, sections, route, vessels };
+    route.geo = { ...defaultGeo(), ...(route.geo || {}) };
+    const vessels = Array.isArray(p.vessels) ? p.vessels.map(a => {
+      const o = defaultAssign(a);
+      if (!a.link) o.link = num(a.bridle, -1) >= 0 ? 'bridle' : 'none';
+      if (!(num(o.bridle, -1) >= 0)) o.bridle = 0;
+      if (o.mode !== 'fixed' && o.mode !== 'flexible') o.mode = oldVesselMode[o.vesselId] === 'fixed' ? 'fixed' : 'flexible';
+      return o;
+    }) : [];
+    const lights = Array.isArray(p.lights) ? p.lights.map(l => defaultLight({ ...l, colour: safeColour(l.colour) })) : [];
+    const attach = { ...defaultAttach(), ...(p.attach || {}) };
+    attach.images = (attach.images || []).filter(x => safeImg(x?.img)).map(x => ({ img: x.img, caption: x.caption || '' }));
+    const plan = { ...d, ...p, cable: { ...d.cable, ...(p.cable || {}) }, sections, route, vessels, lights, attach };
     delete plan.spacing; delete plan.endOffset; delete plan.cable.w; delete plan.cable.mbr;
     st.plans.push(plan);
   });
@@ -784,6 +888,8 @@ function calc(p) {
     const step = sr.xMax < 2 ? 0.1 : sr.xMax < 10 ? 0.25 : 0.5;
     sr.xSuggest = Math.floor(sr.xMax / step + 1e-9) * step;
     sr.xMaxN1 = B / (1.5 * W);
+    const safe = Math.min(sr.xMax, sr.xMaxN1), sstep = safe < 2 ? 0.1 : safe < 10 ? 0.25 : 0.5;
+    sr.xSafe = Math.floor(safe / sstep + 1e-9) * sstep;
     sr.edgeGap = X - r.flen;
     sr.tails = sr.count * sr.tailsPer;
     r.secs.push(sr);
@@ -791,7 +897,7 @@ function calc(p) {
     const nm = `${sr.name}:`;
     if (sr.util > 1) bad(`${nm} overloaded — each float carries ${fmt(sr.load, 0)} kg but gives ${fmt(B, 0)} kg. Use ${fmt(sr.xSuggest, 2)} m spacing or less.`);
     else if (sr.util > 0.9) warn(`${nm} only ${fmt((1 - sr.util) * 100, 0)}% margin on each float.`);
-    if (sr.utilN1 > 1) warn(`${nm} if one float is lost the floats either side carry ${fmt(sr.utilN1 * 100, 0)}% — chain-failure risk. ${fmt(sr.xMaxN1, 2)} m spacing would survive a single loss.`);
+    if (sr.utilN1 > 1) warn(`${nm} spacing is above the cascade-safe limit — if one float is lost the floats either side carry ${fmt(sr.utilN1 * 100, 0)}%. Safe spacing is ${fmt(sr.xSafe, 2)} m.`);
     if (sr.edgeGap < 0) bad(`${nm} floats overlap — float is ${fmt(r.flen, 2)} m long, spacing is ${fmt(X, 2)} m.`);
     else if (sr.edgeGap < 0.5) warn(`${nm} only ${fmt(sr.edgeGap, 2)} m clear between floats.`);
     if (!sr.tailsPer) warn(`${nm} no tails / binding ropes specified.`);
@@ -822,6 +928,19 @@ function calc(p) {
       if (!r.bridles.length) warn('First bridle is beyond the floated length — no bridles placed.');
     } else if (!(iv > 0)) warn('Bridle interval must be above 0.');
   }
+
+  // lights: each rule resolves to float positions (or bridle marks)
+  r.lights = (p.lights || []).map(L => {
+    const marks = [], P = r.positions, seen = new Set();
+    const addFloat = k => { if (k >= 0 && k < P.length && !seen.has(k)) { seen.add(k); marks.push(P[k]); } };
+    const nearest = m => { let lo = 0, hi = P.length - 1; while (hi - lo > 1) { const c = (lo + hi) >> 1; if (P[c] <= m) lo = c; else hi = c; } return Math.abs(P[hi] - m) < Math.abs(P[lo] - m) ? hi : lo; };
+    if (L.at === 'floats' && num(L.every) > 0) for (let d = 0; d <= r.Lf + 1e-6 && marks.length < 5000; d += num(L.every)) addFloat(nearest(so + d));
+    else if (L.at === 'ends') { addFloat(0); addFloat(P.length - 1); }
+    else if (L.at === 'sections') { r.secs.forEach(s => addFloat(s.first)); addFloat(P.length - 1); }
+    else if (L.at === 'bridles') r.bridles.forEach(b => marks.push(b.mark));
+    return { L, marks: marks.sort((a, b) => a - b), colour: safeColour(L.colour) };
+  });
+  if ((p.lights || []).some(L => L.at === 'bridles') && !r.bridles.length) warn('A light is set on bridles but this plan has no bridles.');
 
   r.route = routeInfo(p, r);
   if (r.route && p.route.type !== 'straight') {
@@ -918,6 +1037,140 @@ function omegaPoints(Lf, throat, neck) {
 }
 </script>
 <script>
+/* ---------------- geo-referencing ----------------
+   World coordinates are metres, x east, y south (SVG). A plan's geo origin (lat, lon) sits at world (0, 0).
+   Projection is Web Mercator scaled by cos(lat0), so map tiles drop in as axis-aligned squares. */
+const R_E = 6378137, D2R = Math.PI / 180;
+const mercX = lon => R_E * lon * D2R;
+const mercY = lat => R_E * Math.log(Math.tan(Math.PI / 4 + lat * D2R / 2));
+const hasGeo = g => g && Number.isFinite(g.lat) && Number.isFinite(g.lon);
+function geoToWorld(lat, lon, g) {
+  const k = Math.cos(g.lat * D2R);
+  return [(mercX(lon) - mercX(g.lon)) * k, -(mercY(lat) - mercY(g.lat)) * k];
+}
+function worldToGeo(x, y, g) {
+  const k = Math.cos(g.lat * D2R), mx = x / k + mercX(g.lon), my = -y / k + mercY(g.lat);
+  return [(2 * Math.atan(Math.exp(my / R_E)) - Math.PI / 2) / D2R, mx / R_E / D2R];
+}
+function fmtDDM(v, isLat) {
+  if (!Number.isFinite(v)) return '—';
+  const h = isLat ? (v >= 0 ? 'N' : 'S') : (v >= 0 ? 'E' : 'W'), a = Math.abs(v);
+  let d = Math.floor(a), m = (a - d) * 60; if (m >= 59.9995) { d += 1; m = 0; }
+  return `${String(d).padStart(isLat ? 2 : 3, '0')}°${m.toFixed(3).padStart(6, '0')}′${h}`;
+}
+const fmtLatLon = (lat, lon) => `${fmtDDM(lat, true)} ${fmtDDM(lon, false)}`;
+// Accepts 54.123, -1.5, "54 12.345 N", "54°12'20.7\"N", "001 23.456W"
+function parseCoord(str, isLat) {
+  if (str == null) return NaN;
+  let s = String(str).trim().toUpperCase(); if (!s) return NaN;
+  let sign = 1;
+  if (/[SW]/.test(s)) sign = -1;
+  s = s.replace(/[NSEW]/g, ' ').replace(/[°º'′"″,]/g, ' ').trim();
+  if (s.startsWith('-')) { sign = -sign; s = s.slice(1); }
+  const parts = s.split(/\s+/).map(Number).filter(n => Number.isFinite(n));
+  if (!parts.length) return NaN;
+  const v = sign * (parts[0] + (parts[1] || 0) / 60 + (parts[2] || 0) / 3600);
+  return Math.abs(v) <= (isLat ? 90 : 180) ? v : NaN;
+}
+const TILE_SOURCES = {
+  osm: { url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`, max: 19, credit: '© OpenStreetMap contributors' },
+  sat: { url: (z, x, y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`, max: 19, credit: 'Imagery © Esri' },
+  sea: { url: (z, x, y) => `https://tiles.openseamap.org/seamark/${z}/${x}/${y}.png`, max: 18, credit: 'Seamarks © OpenSeaMap' }
+};
+function tilesSVG(v, g, pxWidth) {
+  if (!hasGeo(g) || (g.base === 'none' && !g.seamarks)) return { svg: '', credit: '' };
+  const k = Math.cos(g.lat * D2R), mx0 = mercX(g.lon), my0 = mercY(g.lat), W = 2 * Math.PI * R_E;
+  let z = Math.round(Math.log2(W * k * (pxWidth || 1000) / (256 * v.w)));
+  const layers = [g.base !== 'none' ? g.base : null, g.seamarks ? 'sea' : null].filter(Boolean);
+  let out = '', credits = [];
+  layers.forEach(key => {
+    const src = TILE_SOURCES[key]; let zz = clamp(z, 2, src.max), tiles;
+    for (;;) {
+      const n = 2 ** zz, ts = W / n;
+      const x0 = Math.floor((v.x / k + mx0 + W / 2) / ts), x1 = Math.floor(((v.x + v.w) / k + mx0 + W / 2) / ts);
+      const y0 = Math.floor((W / 2 - (-v.y / k + my0)) / ts), y1 = Math.floor((W / 2 - (-(v.y + v.h) / k + my0)) / ts);
+      if ((x1 - x0 + 1) * (y1 - y0 + 1) <= 90 || zz <= 2) { tiles = { n, ts, x0, x1, y0: Math.max(0, y0), y1: Math.min(n - 1, y1) }; break; }
+      zz--;
+    }
+    const { n, ts } = tiles, size = ts * k;
+    for (let tx = tiles.x0; tx <= tiles.x1; tx++) for (let ty = tiles.y0; ty <= tiles.y1; ty++) {
+      const wx = (-W / 2 + tx * ts - mx0) * k, wy = -((W / 2 - ty * ts) - my0) * k;
+      out += `<image href="${src.url(zz, ((tx % n) + n) % n, ty)}" x="${wx}" y="${wy}" width="${size * 1.004}" height="${size * 1.004}" preserveAspectRatio="none" opacity="${key === 'sea' ? 1 : clamp(num(g.opacity, 1), 0.1, 1)}"/>`;
+    }
+    credits.push(src.credit);
+  });
+  return { svg: out, credit: credits.join(' · ') };
+}
+function overlaySVG(g, pal, fs) {
+  if (!hasGeo(g) || !Array.isArray(g.overlay) || !g.overlay.length) return '';
+  let o = '';
+  g.overlay.forEach(f => {
+    const pts = f.c.map(([lon, lat]) => geoToWorld(lat, lon, g));
+    if (f.t === 'pt') pts.forEach(q => { o += `<circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.25}" style="fill:#e11d48;stroke:#fff;stroke-width:1" vector-effect="non-scaling-stroke"/>`; if (f.name) o += `<text x="${q[0] + fs * 0.4}" y="${q[1]}" style="font-size:${fs * 0.8}px;fill:#e11d48;paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.2}px">${esc(f.name)}</text>`; });
+    else o += `<path d="${pts.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('')}${f.t === 'poly' ? 'Z' : ''}" style="fill:${f.t === 'poly' ? 'rgba(225,29,72,.08)' : 'none'};stroke:#e11d48;stroke-width:1.6" vector-effect="non-scaling-stroke"/>`;
+  });
+  return o;
+}
+// GeoJSON or KML → [{t:'line'|'poly'|'pt', c:[[lon,lat],...], name}]
+function parseOverlay(text, filename) {
+  const out = [];
+  const push = (t, c, name) => { if (c && c.length) out.push({ t, c: c.map(q => [+q[0], +q[1]]).filter(q => Number.isFinite(q[0]) && Number.isFinite(q[1])), name: name || '' }); };
+  if (/\.kml$/i.test(filename) || /^\s*<\?xml|<kml/i.test(text)) {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    [...doc.getElementsByTagName('Placemark')].forEach(pm => {
+      const name = pm.getElementsByTagName('name')[0]?.textContent || '';
+      const read = el => el.textContent.trim().split(/\s+/).map(s => s.split(',').map(Number));
+      [...pm.getElementsByTagName('LineString')].forEach(ls => push('line', read(ls.getElementsByTagName('coordinates')[0]), name));
+      [...pm.getElementsByTagName('Polygon')].forEach(pg => [...pg.getElementsByTagName('coordinates')].forEach(c => push('poly', read(c), name)));
+      [...pm.getElementsByTagName('Point')].forEach(pt => push('pt', read(pt.getElementsByTagName('coordinates')[0]), name));
+    });
+  } else {
+    const gj = JSON.parse(text);
+    const geom = (gm, name) => {
+      if (!gm) return;
+      const c = gm.coordinates;
+      if (gm.type === 'Point') push('pt', [c], name);
+      else if (gm.type === 'MultiPoint') push('pt', c, name);
+      else if (gm.type === 'LineString') push('line', c, name);
+      else if (gm.type === 'MultiLineString') c.forEach(l => push('line', l, name));
+      else if (gm.type === 'Polygon') c.forEach(l => push('poly', l, name));
+      else if (gm.type === 'MultiPolygon') c.forEach(pg => pg.forEach(l => push('poly', l, name)));
+      else if (gm.type === 'GeometryCollection') gm.geometries.forEach(x => geom(x, name));
+    };
+    const feats = gj.type === 'FeatureCollection' ? gj.features : gj.type === 'Feature' ? [gj] : [{ geometry: gj }];
+    feats.forEach(f => geom(f.geometry, f.properties?.name || f.properties?.NAME || ''));
+  }
+  let total = out.reduce((t, f) => t + f.c.length, 0);
+  if (total > 30000) { const step = Math.ceil(total / 30000); out.forEach(f => { if (f.c.length > 4) f.c = f.c.filter((_, i) => i % step === 0 || i === f.c.length - 1); }); }
+  return out;
+}
+
+/* ---------------- support vessel pose ----------------
+   Heading 0 = north (up), clockwise. A vessel linked to a bridle or cable end sits on a tow line of the given
+   length: connected at the stern it faces away (pulling); connected at the bow it faces the connection. */
+const headingVec = h => [Math.sin(h * D2R), -Math.cos(h * D2R)];
+function vesselAnchor(a, r) {
+  const info = r.route; if (!info) return null;
+  if (a.link === 'bridle') { const b = r.bridles[num(a.bridle)]; return b ? info.at(Math.min(info.length, b.mark - r.so)) : null; }
+  if (a.link === 'start') return info.U[0];
+  if (a.link === 'end') return info.U[info.U.length - 1];
+  return null;
+}
+function vesselPose(a, r) {
+  const v = vesselById(a.vesselId), L = Math.max(5, num(v?.length, 30)), H = num(a.heading);
+  const u = headingVec(H), anchor = vesselAnchor(a, r);
+  if (anchor) {
+    const d = Math.max(0, num(a.dist));
+    if (a.conn === 'bow') { const bow = [anchor[0] - u[0] * d, anchor[1] - u[1] * d]; return { x: bow[0] - u[0] * L / 2, y: bow[1] - u[1] * L / 2, h: H, L, anchor, conn: bow }; }
+    const st = [anchor[0] + u[0] * d, anchor[1] + u[1] * d];
+    return { x: st[0] + u[0] * L / 2, y: st[1] + u[1] * L / 2, h: H, L, anchor, conn: st };
+  }
+  if (a.x == null || a.y == null) return null;
+  return { x: a.x, y: a.y, h: H, L, anchor: null, conn: null };
+}
+const linkLabel = (a, r) => a.link === 'bridle' ? (r.bridles?.[num(a.bridle)] ? `B${num(a.bridle) + 1}` : 'bridle (missing)') : a.link === 'start' ? 'cable start' : a.link === 'end' ? 'cable end' : '';
+</script>
+<script>
 /* ---------------- SVG renderers (shared by screen and print) ---------------- */
 const PAL_SCREEN = { cable:'var(--cable)', water:'var(--water)', waterFill:'var(--water-fill)', bridle:'var(--bridle)', text:'var(--text)',
   muted:'var(--muted)', bad:'var(--bad)', ok:'var(--ok)', grid:'var(--grid)', stroke:'var(--text)', halo:'var(--surface-2)', handle:'var(--accent)' };
@@ -994,8 +1247,15 @@ function elevationSVG(p, r, si, pal = PAL_SCREEN) {
     const yAt = x => { const u = (x - xs[1]) / (X * s); return cy + 2 * sag * 2 * u * (1 - u); };
     o += `<g data-hit="bridles"><title>Bridle</title><path d="M${bx - leg} ${yAt(bx - leg)} L${bx} ${ringY + 7} L${bx + leg} ${yAt(bx + leg)}" style="fill:none;stroke:transparent;stroke-width:22"/><path d="M${bx - leg} ${yAt(bx - leg)} L${bx} ${ringY + 7} L${bx + leg} ${yAt(bx + leg)}" style="fill:none;stroke:${pal.bridle};stroke-width:3;stroke-linejoin:round"/>
       <circle cx="${bx}" cy="${ringY}" r="7" style="fill:${pal.halo};stroke:${pal.bridle};stroke-width:3"/>
-      <text x="${bx}" y="${ringY - 14}" text-anchor="middle" style="fill:${pal.bridle};font-size:13px;font-weight:800">BRIDLE between floats · every ${fmtM(num(p.bridleInterval))} m</text></g>`;
+      <text x="${bx}" y="${ringY - 34}" text-anchor="middle" style="fill:${pal.bridle};font-size:13px;font-weight:800">BRIDLE between floats · every ${fmtM(num(p.bridleInterval))} m</text></g>`;
   }
+  const lightIcon = (lx, ly, col, label) => `<g data-hit="lights"><title>${esc(label)}</title><line x1="${lx}" y1="${ly + 9}" x2="${lx}" y2="${ly + 2}" style="stroke:${pal.stroke};stroke-width:2"/>
+    <circle cx="${lx}" cy="${ly}" r="9" style="fill:${col};opacity:.3"/><circle cx="${lx}" cy="${ly}" r="4.5" style="fill:${col};stroke:${pal.stroke};stroke-width:1.2"/>
+    ${[0, 45, 90, 135, 180].map(a => { const c = Math.cos(-a * D2R), s = Math.sin(-a * D2R); return `<line x1="${lx + c * 7}" y1="${ly + s * 7}" x2="${lx + c * 12}" y2="${ly + s * 12}" style="stroke:${col};stroke-width:1.6"/>`; }).join('')}</g>`;
+  const fl = (r.lights || []).find(l => l.L.at !== 'bridles' && l.marks.length);
+  if (fl) o += lightIcon(xs[0], fy - 12, fl.colour, `${fl.L.name} · ${fl.L.character}`);
+  const bl = (r.lights || []).find(l => l.L.at === 'bridles' && l.marks.length);
+  if (bl && r.b) o += lightIcon((xs[1] + xs[2]) / 2, fy - 59, bl.colour, `${bl.L.name} · ${bl.L.character}`);
   if (over) o += `<text x="${W - 12}" y="${H - 8}" text-anchor="end" style="fill:${pal.bad};font-size:15px;font-weight:900">OVERLOADED — ${fmt(sec.util * 100, 0)}% of buoyancy</text>`;
   return o + '</svg>';
 }
@@ -1021,6 +1281,7 @@ function overviewSVG(p, r, pal = PAL_SCREEN) {
   o += `<line x1="${x(r.so + r.Lf)}" y1="${y0 - 26}" x2="${x(r.so + r.Lf)}" y2="${y0 + 4}" style="stroke:${pal.text};stroke-width:1"/>`;
   if (r.so > 0 && x(r.so) - x(0) > 50) o += `<text x="${(x(0) + x(r.so)) / 2}" y="${y0 - 10}" text-anchor="middle" style="fill:${pal.muted};font-size:10px">no floats</text>`;
   if (r.eo > 0 && x(L) - x(r.so + r.Lf) > 50) o += `<text x="${(x(r.so + r.Lf) + x(L)) / 2}" y="${y0 - 10}" text-anchor="middle" style="fill:${pal.muted};font-size:10px">no floats</text>`;
+  (r.lights || []).forEach((l, li) => l.marks.forEach(m => { o += `<circle data-hit="lights" cx="${x(m)}" cy="${y0 - 30 - li * 0}" r="3.2" style="fill:${l.colour};stroke:${pal.stroke};stroke-width:.8"><title>${esc(l.L.name)} at ${fmtM(m)} m</title></circle>`; }));
   r.bridles.forEach(b => { o += `<path data-hit="bridles" d="M${x(b.mark)} ${y0 + 4} l6 6 l-6 6 l-6 -6z" style="fill:${pal.bridle}"><title>Bridle at ${fmtM(b.mark)} m</title></path>`; });
   if (r.bridles.length && r.bridles.length <= 12) r.bridles.forEach(b => { o += `<text x="${x(b.mark)}" y="${y0 + 30}" text-anchor="middle" style="fill:${pal.bridle};font-size:10px;font-weight:700">${fmtInt(b.mark)}</text>`; });
   else if (r.bridles.length) o += `<text x="${x(r.bridles[0].mark) + 10}" y="${y0 + 30}" style="fill:${pal.bridle};font-size:10.5px;font-weight:700">◆ ${fmtInt(r.bridles.length)} bridles every ${fmtM(num(p.bridleInterval))} m</text>`;
@@ -1031,7 +1292,7 @@ function overviewSVG(p, r, pal = PAL_SCREEN) {
 
 function fitView(info, bg, aspect) {
   let xs = info.poly.map(q => q[0]), ys = info.poly.map(q => q[1]);
-  if (bg) { xs.push(bg.x, bg.x + bg.widthM); ys.push(bg.y, bg.y + bg.widthM * bg.aspect); }
+  if (bg) { xs.push(bg.x, bg.x + bg.widthM); ys.push(bg.y, bg.y + (bg.heightM || bg.widthM * bg.aspect)); }
   let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
   let w = Math.max(20, x1 - x0), h = Math.max(20, y1 - y0);
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
@@ -1048,8 +1309,11 @@ function routeSVG(p, r, pal, opt = {}) {
   const fs = v.w / (opt.print ? 48 : 60), sw = 'vector-effect="non-scaling-stroke"';
   const tx = (x, y, t, st = '', anchor = 'start') => `<text x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${fs}px;paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.22}px;stroke-linejoin:round;${st}">${esc(t)}</text>`;
   let o = `<svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Segoe UI,Arial,sans-serif">`;
-  const bg = p.route.bg;
-  if (bg && safeImg(bg.img)) o += `<image href="${bg.img}" x="${bg.x}" y="${bg.y}" width="${bg.widthM}" height="${bg.widthM * bg.aspect}" preserveAspectRatio="none" opacity="${clamp(num(bg.opacity, 0.6), 0.05, 1)}"/>`;
+  const bg = p.route.bg, geo = p.route.geo;
+  const tiles = tilesSVG(v, geo, opt.pxWidth || 1000);
+  o += tiles.svg;
+  if (bg && safeImg(bg.img)) o += `<image href="${bg.img}" x="${bg.x}" y="${bg.y}" width="${bg.widthM}" height="${bg.heightM || bg.widthM * bg.aspect}" preserveAspectRatio="none" opacity="${clamp(num(bg.opacity, 0.6), 0.05, 1)}"/>`;
+  o += overlaySVG(geo, pal, fs);
   // grid, measured from the start of the route so labels read as distances
   const U0 = info.U[0], g = niceStep(v.w / 10), gl = fs * 0.8;
   const gtxt = (x, y, t, a) => `<text x="${x}" y="${y}" text-anchor="${a}" style="font-size:${gl}px;fill:${pal.muted};paint-order:stroke;stroke:${pal.halo};stroke-width:${gl * 0.25}px">${t}</text>`;
@@ -1106,14 +1370,21 @@ function routeSVG(p, r, pal, opt = {}) {
   o += `<rect x="${Z[0] - fs * 0.4}" y="${Z[1] - fs * 0.4}" width="${fs * 0.8}" height="${fs * 0.8}" style="fill:${pal.text}"/>`;
   o += endLabel(A, U[Math.min(U.length - 1, 3)], Z, `${p.route.startLabel || 'Start'} · ${fmtM(r.so)} m`);
   o += endLabel(Z, U[Math.max(0, U.length - 4)], A, `${p.route.endLabel || 'End'} · ${fmtM(Math.round(r.so + info.length))} m`);
+  // lights along the route
+  (r.lights || []).forEach(l => l.marks.forEach(m => {
+    const s = m - r.so; if (s < -1e-6 || s > info.length + 1) return;
+    const q = info.at(Math.max(0, s)), rr = fs * 0.26;
+    o += `<circle cx="${q[0]}" cy="${q[1]}" r="${rr * 2.2}" style="fill:${l.colour};opacity:.28"/><circle cx="${q[0]}" cy="${q[1]}" r="${rr}" style="fill:${l.colour};stroke:${pal.stroke};stroke-width:1" ${sw}/>`;
+  }));
   o += vesselsSVG(p, r, pal, fs, sw, tx, opt.interactive);
+  if (tiles.credit) o += `<text x="${v.x + v.w - fs * 0.4}" y="${v.y + v.h - fs * 0.4}" text-anchor="end" style="font-size:${fs * 0.65}px;fill:${pal.text};paint-order:stroke;stroke:${pal.halo};stroke-width:${fs * 0.2}px">${esc(tiles.credit)}</text>`;
   o += glab;
   const kx = v.x + v.w - fs * 0.6, ky = v.y + fs * 2.6, ks = fs * 1.1;
   o += `<rect x="${kx - ks - fs * 9.2}" y="${ky - ks * 0.95}" width="${fs * 9.6 + ks}" height="${ks * 1.5}" rx="${fs * 0.2}" style="fill:${pal.halo};opacity:.92"/>`;
   o += `<rect x="${kx - ks}" y="${ky - ks * 0.75}" width="${ks}" height="${ks}" style="fill:none;stroke:${pal.text};stroke-width:1.5" ${sw}/>`;
   o += `<text x="${kx - ks - fs * 0.4}" y="${ky}" text-anchor="end" style="font-size:${fs}px;font-weight:800;fill:${pal.text}">Grid square ${fmtInt(g)} m</text>`;
   if (opt.interactive) info.pts.forEach((q, i) => {
-    o += `<circle class="handle" data-i="${i}" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.38}" style="fill:${pal.handle};fill-opacity:.85;stroke:#fff;stroke-width:1.5" ${sw}/>`;
+    o += `<g class="handle" data-i="${i}"><circle cx="${q[0]}" cy="${q[1]}" r="${fs * 0.9}" style="fill:transparent"/><circle class="hv" cx="${q[0]}" cy="${q[1]}" r="${fs * 0.38}" style="stroke:#fff;stroke-width:1.5" ${sw}/></g>`;
   });
   const sb = niceStep(v.w / 6), sx = v.x + v.w * 0.03, sy = v.y + v.h - fs * 1.2;
   o += `<line x1="${sx}" y1="${sy}" x2="${sx + sb}" y2="${sy}" style="stroke:${pal.text};stroke-width:3" ${sw}/>`;
@@ -1122,24 +1393,33 @@ function routeSVG(p, r, pal, opt = {}) {
   return o + '</svg>';
 }
 
-// Support vessels on the plan view: hull pointing away from its linked bridle (pulling), tow line, flexible radius.
+// Support vessels: hull drawn to length (never smaller than an icon), tow line to its bridle / cable end,
+// flexible working radius, and a rotate handle at the bow when editing.
 function vesselsSVG(p, r, pal, fs, sw, tx, interactive) {
-  const info = r.route; let o = '';
+  let o = '';
   (p.vessels || []).forEach(a => {
-    const v = vesselById(a.vesselId); if (!v || a.x == null || a.y == null) return;
-    const mode = a.mode || v.mode, col = '#f97316';
-    let ang = -Math.PI / 2, bq = null;
-    const b = r.bridles[a.bridle];
-    if (b && info) { bq = info.at(Math.min(info.length, b.mark - r.so)); ang = Math.atan2(a.y - bq[1], a.x - bq[0]); }
-    if (bq) o += `<line x1="${bq[0]}" y1="${bq[1]}" x2="${a.x}" y2="${a.y}" style="stroke:${col};stroke-width:2;stroke-dasharray:7 5" ${sw}/>`;
-    if (mode === 'flexible' && num(a.radius) > 0) o += `<circle cx="${a.x}" cy="${a.y}" r="${num(a.radius)}" style="fill:${col};fill-opacity:.08;stroke:${col};stroke-width:1.5;stroke-dasharray:5 4" ${sw}/>`;
-    const L = fs * 2.4, B = fs * 0.95, c = Math.cos(ang), s = Math.sin(ang);
-    const pt = (lx, ly) => `${(a.x + lx * c - ly * s).toFixed(2)},${(a.y + lx * s + ly * c).toFixed(2)}`;
-    const hull = [pt(L / 2, 0), pt(L * 0.2, -B / 2), pt(-L / 2, -B / 2), pt(-L / 2, B / 2), pt(L * 0.2, B / 2)].join(' ');
-    o += `<g ${interactive ? `class="vessel" data-va="${a.id}" style="cursor:move"` : ''}><polygon points="${hull}" style="fill:${mode === 'fixed' ? col : pal.halo};stroke:${col};stroke-width:2.5" ${sw}/>`;
-    o += tx(a.x, a.y + fs * 2.1, `${v.name}${v.callSign ? ' · ' + v.callSign : ''}`, `fill:${col};font-weight:800`, 'middle');
-    if (a.task) o += tx(a.x, a.y + fs * 3.1, a.task, `fill:${pal.muted}`, 'middle');
+    const v = vesselById(a.vesselId); if (!v) return;
+    const pose = vesselPose(a, r); if (!pose) return;
+    const col = '#f97316', fixed = a.mode === 'fixed';
+    const L = Math.max(pose.L, fs * 2.4), B = Math.max(pose.L * 0.3, fs * 0.95);
+    const u = headingVec(pose.h), nrm = [-u[1], u[0]];
+    const P = (al, ac) => [pose.x + u[0] * al + nrm[0] * ac, pose.y + u[1] * al + nrm[1] * ac];
+    const hull = [P(L / 2, 0), P(L * 0.22, -B / 2), P(-L / 2, -B / 2), P(-L / 2, B / 2), P(L * 0.22, B / 2)].map(q => q.map(n => n.toFixed(2)).join(',')).join(' ');
+    if (!fixed && num(a.radius) > 0) o += `<circle cx="${pose.x}" cy="${pose.y}" r="${num(a.radius)}" style="fill:${col};fill-opacity:.07;stroke:${col};stroke-width:1.5;stroke-dasharray:5 4" ${sw}/>`;
+    if (pose.anchor) {
+      const end = a.conn === 'bow' ? P(L / 2, 0) : P(-L / 2, 0);
+      o += `<line x1="${pose.anchor[0]}" y1="${pose.anchor[1]}" x2="${end[0]}" y2="${end[1]}" style="stroke:${col};stroke-width:2.5" ${sw}/>`;
+      o += `<circle cx="${pose.anchor[0]}" cy="${pose.anchor[1]}" r="${fs * 0.22}" style="fill:${col}"/>`;
+      const mid = [(pose.anchor[0] + end[0]) / 2, (pose.anchor[1] + end[1]) / 2];
+      if (num(a.dist) > 0) o += tx(mid[0] + nrm[0] * fs * 0.6, mid[1] + nrm[1] * fs * 0.6, `${fmtM(num(a.dist))} m`, `fill:${col};font-weight:700`, 'middle');
+    }
+    o += `<g ${interactive ? `class="vessel" data-va="${a.id}" style="cursor:move"` : ''}><polygon points="${hull}" style="fill:${fixed ? col : pal.halo};fill-opacity:${fixed ? 1 : .85};stroke:${col};stroke-width:2.5" ${sw}/>`;
+    const lab = P(-L / 2 - fs * 1.4, 0);
+    o += tx(lab[0], lab[1] + fs * 0.35, `${v.name}${v.callSign ? ' · ' + v.callSign : ''}`, `fill:${col};font-weight:800`, 'middle');
+    const sub = [a.task, fixed ? `hold ${String(Math.round(((pose.h % 360) + 360) % 360)).padStart(3, '0')}°` : `±${fmtM(num(a.radius))} m`].filter(Boolean).join(' · ');
+    o += tx(lab[0], lab[1] + fs * 1.35, sub, `fill:${pal.muted}`, 'middle');
     o += '</g>';
+    if (interactive) { const rh = P(L / 2 + fs * 1.1, 0); o += `<g class="vrot" data-va="${a.id}" style="cursor:grab"><title>Drag to turn the vessel</title><line x1="${P(L / 2, 0)[0]}" y1="${P(L / 2, 0)[1]}" x2="${rh[0]}" y2="${rh[1]}" style="stroke:${col};stroke-width:1.5;stroke-dasharray:2 2" ${sw}/><circle cx="${rh[0]}" cy="${rh[1]}" r="${fs * 0.42}" style="fill:${pal.halo};stroke:${col};stroke-width:2.5" ${sw}/><circle cx="${rh[0]}" cy="${rh[1]}" r="${fs * 0.9}" style="fill:transparent"/></g>`; }
   });
   return o;
 }
@@ -1158,12 +1438,12 @@ function fillPlannerInputs() {
   $$('#tab-planner [data-path]').forEach(el => { if (el.tagName !== 'SELECT') el.value = getPath(p, el.dataset.path) ?? ''; });
   const fs = $('#floatSelect');
   fs.innerHTML = (floatById(p.floatId) ? '' : '<option value="">— choose a float type —</option>') +
-    S.floats.map(f => `<option value="${f.id}">${esc(f.name)} · ${fmtM(num(f.netB))} kg</option>`).join('');
+    S.floats.map(f => `<option value="${f.id}">${esc(f.name)} · ${fmtM(num(f.netB))} kg</option>`).join('') + '<option value="__new">+ New float type…</option>';
   fs.value = floatById(p.floatId) ? p.floatId : '';
   const bs = $('#bridleSelect');
-  bs.innerHTML = '<option value="">None</option>' + S.bridles.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+  bs.innerHTML = '<option value="">None</option>' + S.bridles.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('') + '<option value="__new">+ New bridle type…</option>';
   bs.value = bridleById(p.bridleId) ? p.bridleId : '';
-  renderSections();
+  renderSections(); renderLights(); renderPlanVessels(); renderAttach();
 }
 function renderSections() {
   const p = activePlan(), n = p.sections.length;
@@ -1203,6 +1483,11 @@ function updatePlannerOutputs() {
     $('#legFloat').style.background = safeColour(f.colour);
   } else { th.style.backgroundImage = ''; th.innerHTML = ''; $('#floatSummary').textContent = 'No float type chosen'; }
   $('#bridleFields').disabled = !r.b;
+  const bt = $('#bridleThumb'), bimg = r.b ? safeImg(r.b.image) : '';
+  bt.style.backgroundImage = bimg ? `url("${bimg}")` : ''; bt.innerHTML = r.b && !bimg ? bridleIconSVG() : '';
+  $('#bridleSummary').textContent = r.b ? `SWL ${fmt(num(r.b.swl), 1)} t${r.b.notes ? ' · ' + r.b.notes.split('\n')[0] : ''}` : 'No bridles on this plan';
+  $('#btnEditBridle').disabled = !r.b; $('#btnEditFloat').disabled = !f;
+  $$('#lightList .light-row').forEach(el => { const l = r.lights?.[+el.dataset.li]; $('[data-out="cnt"]', el).innerHTML = l ? `<b>${fmtInt(l.marks.length)}</b> lights` : ''; });
   $('#cableEndNote').innerHTML = r.valid
     ? (r.eo > 1e-6 ? `Sections cover to mark <b>${fmtM(r.so + r.Lf)} m</b>; last <b>${fmtM(r.eo)} m</b> unfloated.`
        : r.eo < -1e-6 ? `<span class="bad">Sections run ${fmtM(-r.eo)} m past the cable end.</span>` : `Sections cover the cable to the end.`) : '';
@@ -1212,7 +1497,8 @@ function updatePlannerOutputs() {
     const marks = $('[data-out="marks"]', el), hint = $('[data-out="hint"]', el), out = $('[data-out="out"]', el);
     if (!r.valid || !sr) { marks.textContent = ''; hint.textContent = ''; out.textContent = ''; return; }
     marks.innerHTML = `cable mark <b>${fmtM(sr.from)}</b> → <b>${fmtM(sr.to)} m</b>`;
-    hint.innerHTML = `max ${fmt(sr.xMax, 2)} m${Math.abs(sr.xSuggest - sr.X) > 1e-9 ? ` <button class="btn" data-sact="use" title="Use the suggested spacing">use ${fmt(sr.xSuggest, 2)}</button>` : ''}`;
+    const over = sr.X > sr.xSafe + 1e-9;
+    hint.innerHTML = `<span class="${sr.util > 1 ? 'bad' : over ? 'warn' : 'ok'}" style="font-weight:700">safe ${fmt(sr.xSafe, 2)} m</span> · max ${fmt(sr.xMax, 2)}${Math.abs(sr.xSafe - sr.X) > 1e-9 ? ` <button class="btn" data-sact="use" title="Use the cascade-safe spacing">use ${fmt(sr.xSafe, 2)}</button>` : ''}`;
     const uc = sr.util > 1 ? 'bad' : sr.util > 0.9 ? 'warn' : 'ok';
     out.innerHTML = `<span><b>${fmtInt(sr.count)}</b> floats</span><span><b>${fmtInt(sr.tails)}</b> tails</span>
       <span>load <b class="${uc}">${fmt(sr.load, 0)} kg · ${fmt(sr.util * 100, 0)}%</b></span>
@@ -1291,6 +1577,98 @@ function resultsHTML(p, r) {
       ${r.secs.map(s => `<tr><td><i style="background:${s.colour}"></i>${esc(s.name)}</td><td>${fmt(s.X, 2)} m</td><td>${fmtInt(s.count)}</td><td>${s.tailsPer} × ${fmtInt(s.count)}</td><td class="${s.util > 1 ? 'bad' : s.util > 0.9 ? 'warn' : 'ok'}">${fmt(s.util * 100, 0)}%</td></tr>`).join('')}</table>` : ''}
     ${msgsHTML(r.msgs)}`;
 }
+function renderLights() {
+  const p = activePlan();
+  $('#lightList').innerHTML = !p.lights.length ? '<p class="muted small" style="margin:0">No lights yet. Add one for the floats and one for the bridles.</p>' : p.lights.map((L, i) => `
+    <div class="light-row" data-li="${i}">
+      <label>Light<input data-lk="name" value="${esc(L.name)}" placeholder="e.g. Sealite SL-60"></label>
+      <label>Colour<select data-lk="colour">${LIGHT_COLOURS.map(([c, n]) => `<option value="${c}" ${c === L.colour ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label>Character<input data-lk="character" value="${esc(L.character)}" placeholder="Fl Y 5s"></label>
+      <label>Range<div class="unit-wrap"><input data-lk="range" type="number" min="0" step="0.5" value="${esc(L.range)}"><i>nm</i></div></label>
+      <label>Fitted on<select data-lk="at">${LIGHT_AT.map(([v, n]) => `<option value="${v}" ${v === L.at ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <label>Every<div class="unit-wrap"><input data-lk="every" type="number" min="0" step="10" value="${esc(L.every)}" ${L.at === 'floats' ? '' : 'disabled'}><i>m</i></div></label>
+      <div class="row"><span class="cnt" data-out="cnt"></span><button class="btn sm danger" data-lact="del">✕</button></div>
+    </div>`).join('');
+}
+function renderAttach() {
+  const p = activePlan();
+  $('#attachImages').innerHTML = p.attach.images.map((im, i) => `<figure data-ai="${i}"><img src="${safeImg(im.img)}" alt=""><figcaption><input data-ac value="${esc(im.caption)}" placeholder="Caption, e.g. Step 2 — tails through both eyes"><button class="btn sm danger" data-aidel>✕</button></figcaption></figure>`).join('');
+}
+function vesselMeta(a, r) {
+  const v = vesselById(a.vesselId); if (!v) return 'Vessel missing from library';
+  const pos = a.mode === 'fixed' ? `<strong>fixed</strong>, hold ${String(Math.round(((num(a.heading) % 360) + 360) % 360)).padStart(3, '0')}°` : `<strong>flexible</strong> ±${fmtM(num(a.radius))} m`;
+  const tow = a.link !== 'none' ? ` · towing from <strong>${esc(linkLabel(a, r))}</strong>, ${fmtM(num(a.dist))} m off the ${a.conn}` : '';
+  return `${esc(v.type)} · ${fmtM(num(v.power))} ${esc(v.powerUnit)}${a.task ? ' · ' + esc(a.task) : ''}<br>${pos}${tow}`;
+}
+function renderPlanVessels() {
+  const p = activePlan(), r = calc(p);
+  $('#planVessels').innerHTML = !p.vessels.length ? '<p class="muted small" style="margin:0">No support vessels yet.</p>' : p.vessels.map(a => {
+    const v = vesselById(a.vesselId), img = v ? safeImg(v.image) : '', placed = !!vesselPose(a, r);
+    return `<div class="pv-row" data-aid="${a.id}"><div class="thumb" style="${img ? `background-image:url('${img}')` : ''}">${img ? '' : vesselIconSVG()}</div>
+      <div><b>${esc(v ? v.name : '—')}</b>${v?.callSign ? ` <span class="muted">· ${esc(v.callSign)}</span>` : ''}<div class="meta">${vesselMeta(a, r)}</div></div>
+      <div class="row"><button class="btn sm" data-vact="edit">Edit</button><button class="btn sm ${placed ? '' : 'primary'}" data-vact="place">${placed ? 'Show on route' : 'Place on route'}</button><button class="btn sm danger" data-vact="del">✕</button></div></div>`;
+  }).join('');
+}
+// One dialog for everything about a support vessel: its library details and its job in this plan.
+function openVesselDialog(aid) {
+  const p = activePlan(), r = calc(p), src = aid ? p.vessels.find(a => a.id === aid) : null;
+  const a = src ? { ...src } : defaultAssign();
+  let vd = a.vesselId && vesselById(a.vesselId) ? { ...vesselById(a.vesselId) } : (S.vessels[0] && !src ? { ...S.vessels[0] } : defaultVessel());
+  if (!src && S.vessels[0]) a.vesselId = S.vessels[0].id;
+  const opt = (v, t, sel) => `<option value="${v}" ${String(sel) === String(v) ? 'selected' : ''}>${t}</option>`;
+  const linkOpts = opt('none', 'Not connected', a.link) + (r.bridles || []).map((b, j) => opt('bridle:' + j, `Bridle B${j + 1} · ${fmtM(b.mark)} m`, a.link === 'bridle' ? 'bridle:' + num(a.bridle) : '')).join('') + opt('start', 'Cable start (first float)', a.link) + opt('end', 'Cable end (last float)', a.link);
+  $('#editTitle').textContent = src ? 'Support vessel' : 'Add support vessel';
+  const libFields = () => `
+      <label class="field wide"><span>Vessel name</span><input name="v_name" value="${esc(vd.name)}" required placeholder="e.g. Svitzer Mars"></label>
+      <label class="field"><span>Type</span><select name="v_type">${VESSEL_TYPES.map(t => opt(t, t, vd.type)).join('')}</select></label>
+      <label class="field"><span>Call sign</span><input name="v_callSign" value="${esc(vd.callSign)}"></label>
+      <label class="field"><span>Power</span><div class="row" style="flex-wrap:nowrap"><input name="v_power" type="number" min="0" step="any" value="${esc(vd.power)}"><select name="v_powerUnit" style="width:90px">${[['t BP', 't BP'], ['kW', 'kW'], ['hp', 'hp']].map(([x, t]) => opt(x, t, vd.powerUnit)).join('')}</select></div></label>
+      <label class="field"><span>Length overall</span><div class="unit-wrap"><input name="v_length" type="number" min="1" step="any" value="${esc(vd.length)}"><i>m</i></div></label>
+      <label class="field wide"><span>Notes<em>VHF channel, master, limits</em></span><textarea name="v_notes">${esc(vd.notes)}</textarea></label>
+      <div class="img-edit"><div class="thumb" id="vdThumb"></div><div style="flex:1"><input type="file" id="vdFile" accept="image/*"><button type="button" class="btn sm danger" id="vdRemove" style="margin-top:6px">Remove photo</button></div></div>`;
+  $('#editBody').innerHTML = `
+    <div class="vd-sec"><h4>Vessel</h4>
+      <label class="field wide"><span>Choose</span><select name="v_pick">${S.vessels.map(v => opt(v.id, esc(v.name) + (v.callSign ? ' · ' + esc(v.callSign) : ''), a.vesselId)).join('')}${opt('__new', '+ New vessel', S.vessels.length ? '' : '__new')}</select></label>
+      <div id="vdLib">${libFields()}</div></div>
+    <div class="vd-sec"><h4>Job in this plan</h4>
+      <label class="field wide"><span>Task</span><input name="a_task" value="${esc(a.task)}" placeholder="e.g. Hold the bight at B3"></label>
+      <label class="field"><span>Position</span><select name="a_mode">${opt('fixed', 'Fixed — holds station and heading', a.mode)}${opt('flexible', 'Flexible — works within a radius', a.mode)}</select></label>
+      <label class="field"><span>Working radius<em>flexible only</em></span><div class="unit-wrap"><input name="a_radius" type="number" min="0" step="10" value="${esc(a.radius)}"><i>m</i></div></label></div>
+    <div class="vd-sec"><h4>Tow connection &amp; heading</h4>
+      <label class="field wide"><span>Connected to</span><select name="a_link">${linkOpts}</select></label>
+      <label class="field"><span>Tow point on vessel</span><select name="a_conn">${opt('stern', 'Stern — vessel faces away', a.conn)}${opt('bow', 'Bow — vessel faces the cable', a.conn)}</select></label>
+      <label class="field"><span>Tow line length<em>connection to vessel</em></span><div class="unit-wrap"><input name="a_dist" type="number" min="0" step="5" value="${esc(a.dist)}"><i>m</i></div></label>
+      <label class="field"><span>Heading<em>0° = up the page (north)</em></span><div class="unit-wrap"><input name="a_heading" type="number" step="5" value="${esc(Math.round(num(a.heading)))}"><i>°</i></div></label>
+      <div class="small muted">Connected vessels sit on their tow line automatically. Unconnected vessels are placed by clicking on the Route &amp; Layout map. Drag on the map to move; drag the small circle at the bow to turn.</div></div>`;
+  const bindLib = () => {
+    const t = $('#vdThumb'), s = safeImg(vd.image);
+    t.style.backgroundImage = s ? `url("${s}")` : ''; t.innerHTML = s ? '' : vesselIconSVG(); $('#vdRemove').hidden = !s;
+    $('#vdFile').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { vd.image = (await readImage(f, 900)).data; bindLib(); } catch { toast('Could not read that image'); } };
+    $('#vdRemove').onclick = () => { vd.image = ''; bindLib(); };
+  };
+  bindLib();
+  const syncConn = () => { const off = $('#editBody [name="a_link"]').value === 'none'; ['a_conn', 'a_dist'].forEach(n => $(`#editBody [name="${n}"]`).disabled = off); $('#editBody [name="a_radius"]').disabled = $('#editBody [name="a_mode"]').value === 'fixed'; };
+  syncConn();
+  $('#editBody').oninput = e => {
+    if (e.target.name === 'v_pick') { vd = e.target.value === '__new' ? defaultVessel() : { ...vesselById(e.target.value) }; $('#vdLib').innerHTML = libFields(); bindLib(); }
+    if (['a_link', 'a_mode'].includes(e.target.name)) syncConn();
+  };
+  const dlg = $('#editDlg'); dlg.returnValue = '';
+  dlg.onclose = () => {
+    if (dlg.returnValue !== 'save') return;
+    const g = n => $(`#editBody [name="${n}"]`).value;
+    Object.assign(vd, { name: g('v_name').trim(), type: g('v_type'), callSign: g('v_callSign').trim(), power: num(g('v_power')), powerUnit: g('v_powerUnit'), length: num(g('v_length'), 30), notes: g('v_notes').trim() });
+    if (g('v_pick') === '__new' || !vesselById(vd.id)) { vd.id = uid(); S.vessels.push(vd); } else Object.assign(vesselById(vd.id), vd);
+    const lk = g('a_link');
+    Object.assign(a, { vesselId: vd.id, task: g('a_task').trim(), mode: g('a_mode'), radius: num(g('a_radius')),
+      link: lk.startsWith('bridle') ? 'bridle' : lk, bridle: lk.startsWith('bridle') ? +lk.split(':')[1] : num(a.bridle), conn: g('a_conn'), dist: num(g('a_dist')), heading: num(g('a_heading')) });
+    if (src) Object.assign(src, a); else p.vessels.push(a);
+    save(); renderPlanVessels(); updatePlannerOutputs(); renderVessels();
+    if ($('#tab-route').classList.contains('active')) renderRoute();
+    toast(src ? 'Vessel updated' : `${vd.name} added — ${a.link === 'none' ? 'press Place on route to position it' : 'shown on its tow line'}`);
+  };
+  dlg.showModal();
+}
 function sectionAction(act, i) {
   const p = activePlan(), secs = p.sections, s = secs[i]; if (!s) return;
   if (act === 'up' && i > 0) [secs[i-1], secs[i]] = [secs[i], secs[i-1]];
@@ -1302,7 +1680,7 @@ function sectionAction(act, i) {
     const rest = num(p.cable.length) - num(p.startOffset) - others;
     if (rest <= 0) return toast('No cable left for this section');
     s.length = Math.round(rest * 100) / 100;
-  } else if (act === 'use') { const r = calc(p); const sr = r.secs?.[i]; if (sr) s.spacing = sr.xSuggest; }
+  } else if (act === 'use') { const r = calc(p); const sr = r.secs?.[i]; if (sr) s.spacing = sr.xSafe; }
   save(); renderSections(); updatePlannerOutputs();
 }
 function addSection() {
@@ -1310,13 +1688,15 @@ function addSection() {
   const used = p.sections.reduce((t, x) => t + num(x.length), 0);
   const rest = num(p.cable.length) - num(p.startOffset) - used;
   p.sections.push(defaultSection({ length: rest > 0 ? Math.round(rest) : 100, w: last.w, spacing: last.spacing, tails: last.tails, tailSpec: last.tailSpec }));
-  PL.sec = p.sections.length - 1; save(); renderSections(); updatePlannerOutputs();
+  PL.sec = p.sections.length - 1;
+  const r = calc(p), sr = r.secs?.[PL.sec]; if (sr) p.sections[PL.sec].spacing = sr.xSafe;
+  save(); renderSections(); updatePlannerOutputs();
   setTimeout(() => $(`#sections .sec[data-i="${PL.sec}"] [data-key="name"]`)?.focus(), 30);
 }
 
 /* ---------------- route editor ---------------- */
 const RT = { mode: 'add', drag: null, undo: [], view: null, planId: null, raf: 0 };
-const routeAspect = () => { const el = $('#routeSvgWrap'); return (el.clientWidth / el.clientHeight) || 2; };
+const routeAspect = () => { const el = $('#routeSvg'); return (el.clientWidth / el.clientHeight) || 2; };
 function ensurePoints(p) {
   if (!Array.isArray(p.route.points)) p.route.points = routeControlPoints(p, calc(p).Lf).map(q => q.slice());
 }
@@ -1331,7 +1711,7 @@ function blankRouteSVG(view, pts) {
   return o + '</svg>';
 }
 function renderRoute() {
-  const p = activePlan(), wrap = $('#routeSvgWrap');
+  const p = activePlan(), wrap = $('#routeSvg');
   if (RT.planId !== p.id) { RT.planId = p.id; RT.view = p.route.view || null; RT.undo = []; }
   const r = calc(p);
   if (Array.isArray(p.route.points) && p.route.points.length < 2) {
@@ -1342,9 +1722,10 @@ function renderRoute() {
     wrap.innerHTML = placeholderSVG('Fix the planner inputs first — see the Planner tab', 1000, 500);
   } else {
     if (!RT.view) RT.view = fitView(r.route, p.route.bg, routeAspect());
-    wrap.innerHTML = routeSVG(p, r, PAL_SCREEN, { interactive: true, view: RT.view });
+    wrap.innerHTML = routeSVG(p, r, PAL_SCREEN, { interactive: true, view: RT.view, pxWidth: wrap.clientWidth });
   }
-  wrap.classList.toggle('mode-move', RT.mode === 'move');
+  $('#routeSvgWrap').classList.toggle('mode-move', RT.mode === 'move');
+  fillGeoControls(p);
   $('#rtModeAdd').setAttribute('aria-pressed', RT.mode === 'add');
   $('#rtModeMove').setAttribute('aria-pressed', RT.mode === 'move');
   $('#rtUndo').disabled = !RT.undo.length;
@@ -1354,6 +1735,7 @@ function renderRoute() {
   $$('[data-rpath]').forEach(el => { if (document.activeElement !== el) el.value = p.route[el.dataset.rpath] || ''; });
   const bg = p.route.bg;
   $('#bgControls').hidden = !bg;
+  $('#bgGeo').hidden = !hasGeo(p.route.geo);
   if (bg) $$('[data-bg]').forEach(el => { if (document.activeElement !== el) el.value = bg[el.dataset.bg]; });
 }
 function renderRouteStats(p, r) {
@@ -1376,13 +1758,72 @@ function renderRouteStats(p, r) {
 }
 function renderRouteVessels(p, r) {
   const box = $('#routeVessels');
-  if (!p.vessels.length) { box.innerHTML = '<p class="small muted" style="margin:0">No support vessels in this plan yet.</p>'; return; }
+  if (!p.vessels.length) { box.innerHTML = '<p class="small muted" style="margin:0">None yet — add them in Planner → Support vessels.</p>'; return; }
   box.innerHTML = p.vessels.map(a => {
-    const v = vesselById(a.vesselId), placed = a.x != null;
-    const br = r.bridles?.[a.bridle] ? ` · B${a.bridle + 1}` : '';
-    return `<div class="rv"><span class="dot"></span><div class="nm"><b>${esc(v ? v.name : '— choose vessel —')}</b><small>${esc(a.task || (v ? v.type : ''))}${br} · ${(a.mode || v?.mode) === 'fixed' ? 'fixed' : 'flexible'}</small></div>
-      <button class="btn sm ${placed ? '' : 'primary'}" data-place="${a.id}" ${v ? '' : 'disabled'}>${placed ? 'Move' : 'Place'}</button></div>`;
+    const v = vesselById(a.vesselId), placed = !!vesselPose(a, r);
+    return `<div class="rv"><span class="dot"></span><div class="nm"><b>${esc(v ? v.name : '—')}</b><small>${esc(a.task || v?.type || '')}${a.link !== 'none' ? ' · ' + esc(linkLabel(a, r)) : ''}</small></div>
+      <button class="btn sm" data-vedit="${a.id}">Edit</button>${a.link === 'none' ? `<button class="btn sm ${placed ? '' : 'primary'}" data-place="${a.id}" ${v ? '' : 'disabled'}>${placed ? 'Move' : 'Place'}</button>` : ''}</div>`;
   }).join('');
+}
+function moveVesselTo(a, q, r) {
+  const anchor = vesselAnchor(a, r);
+  if (!anchor) { a.x = q[0]; a.y = q[1]; return; }
+  const L = Math.max(5, num(vesselById(a.vesselId)?.length, 30)), dx = q[0] - anchor[0], dy = q[1] - anchor[1];
+  const brg = Math.atan2(dx, -dy) / D2R;
+  a.heading = Math.round(((a.conn === 'bow' ? brg + 180 : brg) + 360) % 360);
+  a.dist = Math.max(0, Math.round(Math.hypot(dx, dy) - L / 2));
+}
+function fillGeoControls(p) {
+  const g = p.route.geo, set = hasGeo(g);
+  const fill = (id, v) => { const el = $(id); if (document.activeElement !== el) el.value = v; };
+  fill('#geoLat', set ? fmtDDM(g.lat, true) : ''); fill('#geoLon', set ? fmtDDM(g.lon, false) : '');
+  $('#geoControls').hidden = !set;
+  $('#geoBase').value = g.base; $('#geoSea').checked = !!g.seamarks; $('#geoOpacity').value = num(g.opacity, 1);
+  $('#ovRemove').disabled = !(g.overlay && g.overlay.length);
+}
+// Put the route start at the given lat/lon: shift the drawing so its start sits on world (0,0).
+function setGeoPosition(lat, lon) {
+  const p = activePlan(), r = calc(p), s = r.route ? r.route.U[0] : [0, 0];
+  if (Array.isArray(p.route.points)) p.route.points = p.route.points.map(q => [q[0] - s[0], q[1] - s[1]]);
+  p.vessels.forEach(a => { if (a.x != null) { a.x -= s[0]; a.y -= s[1]; } });
+  if (p.route.bg) { p.route.bg.x -= s[0]; p.route.bg.y -= s[1]; }
+  if (p.route.geo.overlay && hasGeo(p.route.geo)) {} // overlay is stored in lat/lon, nothing to shift
+  Object.assign(p.route.geo, { lat, lon });
+  if (p.route.geo.base === 'none' && !p.route.geo.seamarks) p.route.geo.base = 'osm';
+  RT.view = null; renderRoute(); commitRoute();
+  toast(`Route start set to ${fmtLatLon(lat, lon)}`);
+}
+function keyPoints(p, r) {
+  const pts = [], info = r.route, g = p.route.geo;
+  if (!info) return pts;
+  const add = (name, mark, q) => pts.push({ name, mark, x: q[0], y: q[1], ...(hasGeo(g) ? (([la, lo]) => ({ lat: la, lon: lo }))(worldToGeo(q[0], q[1], g)) : {}) });
+  add('Route start (first float)', r.so, info.U[0]);
+  r.secs.slice(1).forEach(s => s.from - r.so <= info.length && add(`Section change → ${s.name}`, s.from, info.at(s.from - r.so)));
+  r.bridles.forEach((b, j) => b.mark - r.so <= info.length && add(`Bridle B${j + 1}`, b.mark, info.at(b.mark - r.so)));
+  add('Route end', r.so + info.length, info.U[info.U.length - 1]);
+  p.vessels.forEach(a => { const v = vesselById(a.vesselId), ps = vesselPose(a, r); if (v && ps) add(`Vessel ${v.name}${v.callSign ? ' (' + v.callSign + ')' : ''}`, null, [ps.x, ps.y]); });
+  return pts;
+}
+function download(name, text, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function exportPositionsCSV() {
+  const p = activePlan(), r = calc(p); if (!r.route) return toast('No route to export');
+  const q = s => `"${String(s).replace(/"/g, '""')}"`;
+  const rows = [['Item', 'Cable mark (m)', 'x east (m)', 'y north (m)', 'Lat', 'Long', 'Lat (DDM)', 'Long (DDM)'].join(',')];
+  keyPoints(p, r).forEach(k => rows.push([q(k.name), k.mark == null ? '' : k.mark.toFixed(1), k.x.toFixed(1), (-k.y).toFixed(1),
+    k.lat != null ? k.lat.toFixed(7) : '', k.lon != null ? k.lon.toFixed(7) : '', k.lat != null ? q(fmtDDM(k.lat, true)) : '', k.lon != null ? q(fmtDDM(k.lon, false)) : ''].join(',')));
+  download(`${(p.name || 'plan').replace(/[^\w\-]+/g, '_')}_positions.csv`, rows.join('\r\n'), 'text/csv');
+}
+function exportGeoJSON() {
+  const p = activePlan(), r = calc(p), g = p.route.geo;
+  if (!r.route || !hasGeo(g)) return toast('Set the route position first');
+  const info = r.route, n = Math.min(800, Math.max(20, Math.round(info.length / 2))), line = [];
+  for (let i = 0; i <= n; i++) { const w = info.at(info.length * i / n), [la, lo] = worldToGeo(w[0], w[1], g); line.push([+lo.toFixed(7), +la.toFixed(7)]); }
+  const feats = [{ type: 'Feature', properties: { name: p.name || 'Route', kind: 'floated cable' }, geometry: { type: 'LineString', coordinates: line } }];
+  keyPoints(p, r).forEach(k => feats.push({ type: 'Feature', properties: { name: k.name, cable_mark_m: k.mark }, geometry: { type: 'Point', coordinates: [+k.lon.toFixed(7), +k.lat.toFixed(7)] } }));
+  download(`${(p.name || 'plan').replace(/[^\w\-]+/g, '_')}.geojson`, JSON.stringify({ type: 'FeatureCollection', features: feats }, null, 1), 'application/geo+json');
 }
 function commitRoute() { const p = activePlan(); p.route.view = RT.view; save(); renderRoute(); }
 function scheduleRoute() { if (!RT.raf) RT.raf = requestAnimationFrame(() => { RT.raf = 0; renderRoute(); }); }
@@ -1405,13 +1846,14 @@ function initRouteEditor() {
   const wrap = $('#routeSvgWrap');
   wrap.addEventListener('pointerdown', e => {
     const svg = wrap.querySelector('svg'); if (!svg || !RT.view) return;
-    const p = activePlan(), h = e.target.closest('.handle'), vg = e.target.closest('.vessel');
+    const p = activePlan(), h = e.target.closest('.handle'), vg = e.target.closest('.vessel'), vr = e.target.closest('.vrot');
     if (RT.placing) {
       const a = p.vessels.find(x => x.id === RT.placing); RT.placing = null;
-      if (a) { const q = toWorld(e, svg); a.x = q[0]; a.y = q[1]; }
-      e.preventDefault(); commitRoute(); return;
+      if (a) moveVesselTo(a, toWorld(e, svg), calc(p));
+      e.preventDefault(); commitRoute(); renderPlanVessels(); return;
     }
-    if (vg) { RT.drag = { type: 'vessel', id: vg.dataset.va }; wrap.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+    if (vr) { RT.drag = { type: 'vrot', id: vr.dataset.va, r: calc(p) }; wrap.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+    if (vg) { RT.drag = { type: 'vessel', id: vg.dataset.va, r: calc(p) }; wrap.setPointerCapture(e.pointerId); e.preventDefault(); return; }
     if (h) {
       ensurePoints(p); pushUndo(p);
       RT.drag = { type: 'pt', i: +h.dataset.i };
@@ -1424,16 +1866,28 @@ function initRouteEditor() {
     if (e.button !== 0) return;
     ensurePoints(p); pushUndo(p);
     const q = toWorld(e, svg), pts = p.route.points;
-    if (e.shiftKey && pts.length >= 2) pts.splice(nearestSegment(pts, q) + 1, 0, q); else pts.push(q);
+    // a click on (or close to) the line inserts a point there instead of jumping to the end
+    const rr = calc(p).route, tol = 14 * RT.view.w / wrap.clientWidth;
+    let near = false;
+    if (rr) for (let i = 0; i < rr.U.length; i += 2) if (Math.hypot(rr.U[i][0] - q[0], rr.U[i][1] - q[1]) < tol) { near = true; break; }
+    if ((e.shiftKey || near) && pts.length >= 2) pts.splice(nearestSegment(pts, q) + 1, 0, q); else pts.push(q);
     p.route.type = 'custom';
     commitRoute();
   });
   wrap.addEventListener('pointermove', e => {
-    if (!RT.drag) return;
+    if (!RT.drag) {
+      const svg = wrap.querySelector('svg'); if (!svg || !RT.view) return;
+      const q = toWorld(e, svg), g = activePlan().route.geo;
+      $('#cursorPos').textContent = hasGeo(g) ? fmtLatLon(...worldToGeo(q[0], q[1], g)) : `x ${fmtInt(q[0])} m · y ${fmtInt(-q[1])} m`;
+      return;
+    }
     const p = activePlan();
-    if (RT.drag.type === 'vessel') {
+    if (RT.drag.type === 'vessel' || RT.drag.type === 'vrot') {
       const svg = wrap.querySelector('svg'), a = p.vessels.find(x => x.id === RT.drag.id); if (!svg || !a) return;
-      const q = toWorld(e, svg); a.x = q[0]; a.y = q[1]; scheduleRoute();
+      const q = toWorld(e, svg);
+      if (RT.drag.type === 'vessel') moveVesselTo(a, q, RT.drag.r);
+      else { const pose = vesselPose(a, RT.drag.r); if (pose) a.heading = Math.round((Math.atan2(q[0] - pose.x, -(q[1] - pose.y)) / D2R + 360) % 360); }
+      RT.drag.moved = true; scheduleRoute();
     } else if (RT.drag.type === 'pt') {
       const svg = wrap.querySelector('svg'); if (!svg) return;
       p.route.points[RT.drag.i] = toWorld(e, svg); p.route.type = 'custom'; RT.drag.moved = true; scheduleRoute();
@@ -1445,9 +1899,11 @@ function initRouteEditor() {
   });
   const end = () => {
     if (!RT.drag) return;
+    if (RT.drag.type === 'vessel' || RT.drag.type === 'vrot') { RT.drag = null; commitRoute(); renderPlanVessels(); return; }
     if (RT.drag.type === 'pt' && !RT.drag.moved) RT.undo.pop();
     RT.drag = null; commitRoute();
   };
+  wrap.addEventListener('pointerleave', () => { if (!RT.drag) $('#cursorPos').textContent = ''; });
   wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
   wrap.addEventListener('dblclick', e => {
     const h = e.target.closest('.handle'); if (!h) return;
@@ -1499,7 +1955,7 @@ function initRouteEditor() {
   $('#tab-route').addEventListener('input', e => {
     const p = activePlan(), el = e.target;
     if (el.dataset.rpath) { p.route[el.dataset.rpath] = el.value; save(); scheduleRoute(); }
-    if (el.dataset.bg && p.route.bg) { p.route.bg[el.dataset.bg] = num(el.value, p.route.bg[el.dataset.bg]); save(); scheduleRoute(); }
+    if (el.dataset.bg && p.route.bg) { p.route.bg[el.dataset.bg] = num(el.value, p.route.bg[el.dataset.bg]); if (el.dataset.bg === 'widthM') p.route.bg.heightM = null; save(); scheduleRoute(); }
   });
   $('#bgFile').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
@@ -1590,7 +2046,7 @@ const EDITORS = {
       ['callSign', 'Call sign', 'text', 'e.g. 2ABC4'],
       ['power', 'Power', 'num'],
       ['powerUnit', 'Power unit', 'select', [['t BP', 't bollard pull'], ['kW', 'kW'], ['hp', 'hp']]],
-      ['mode', 'Default position', 'select', [['flexible', 'Flexible — works within a radius'], ['fixed', 'Fixed — holds station']]],
+      ['length', 'Length overall (m)', 'num'],
       ['notes', 'Notes<em>VHF channel, master, contact, limits</em>', 'area', 'e.g. VHF 72 · Master J. Smith']] },
   bridle: { list: () => S.bridles, key: 'bridleId', blank: defaultBridle, title: 'bridle', icon: bridleIconSVG,
     fields: [
@@ -1598,7 +2054,7 @@ const EDITORS = {
       ['swl', 'SWL (t)', 'num'],
       ['notes', 'Rigging description<em>printed on the deck sheet</em>', 'area', 'e.g. 2 × 5 m 24 mm legs to 13.5 t shackle, lashed either side of float']] }
 };
-function openEditor(kind, id) {
+function openEditor(kind, id, onSaved) {
   const E = EDITORS[kind], src = id ? E.list().find(x => x.id === id) : null;
   const draft = src ? JSON.parse(JSON.stringify(src)) : E.blank();
   if (!src) draft.name = '';
@@ -1631,6 +2087,7 @@ function openEditor(kind, id) {
     if (dlg.returnValue !== 'save') return;
     E.fields.forEach(([k, , type]) => { const el = $(`#editBody [name="${k}"]`); draft[k] = type === 'num' ? num(el.value) : el.value.trim(); });
     if (src) Object.assign(src, draft); else E.list().push(draft);
+    if (onSaved) onSaved(draft.id);
     save(); afterLibraryChange(); toast(`${src ? 'Saved' : 'Added'} ${draft.name}`);
   };
   dlg.showModal();
@@ -1660,31 +2117,10 @@ function renderVessels() {
       ${libPhoto(v.image, vesselIconSVG())}
       <div class="body"><h4>${esc(v.name)}</h4>
         <div class="meta">${esc(v.type)}${v.callSign ? ` · call sign <b>${esc(v.callSign)}</b>` : ''}</div>
-        <div class="meta">Power <b>${fmtM(num(v.power))} ${esc(v.powerUnit)}</b> · default position <b>${v.mode === 'fixed' ? 'fixed' : 'flexible'}</b></div>
+        <div class="meta">Power <b>${fmtM(num(v.power))} ${esc(v.powerUnit)}</b> · length <b>${fmtM(num(v.length))} m</b></div>
         ${v.notes ? `<div class="meta" style="margin-top:6px;white-space:pre-line">${esc(v.notes)}</div>` : ''}
         <div class="used">${u.length ? `In ${u.length} plan${u.length > 1 ? 's' : ''}` : 'Not used yet'}</div></div>
       <div class="actions"><button class="btn sm" data-act="edit" data-id="${v.id}">Edit</button><button class="btn sm" data-act="dup" data-id="${v.id}">Duplicate</button><button class="btn sm danger" data-act="del" data-id="${v.id}" style="margin-left:auto">Delete</button></div>
-    </div>`;
-  }).join('');
-  renderAssignments();
-}
-function renderAssignments() {
-  const p = activePlan(), r = calc(p);
-  $('#vesPlanName').textContent = p.name || '';
-  const box = $('#assignList');
-  if (!p.vessels.length) { box.innerHTML = '<p class="muted small">No vessels in this plan yet.</p>'; return; }
-  const brOpts = sel => `<option value="-1">None</option>` + (r.bridles || []).map((b, j) => `<option value="${j}" ${sel === j ? 'selected' : ''}>B${j + 1} · ${fmtM(b.mark)} m</option>`).join('');
-  box.innerHTML = p.vessels.map(a => {
-    const v = vesselById(a.vesselId), mode = a.mode || v?.mode || 'flexible';
-    return `<div class="assign" data-aid="${a.id}">
-      <label>Vessel<select data-af="vesselId"><option value="">— choose —</option>${S.vessels.map(x => `<option value="${x.id}" ${x.id === a.vesselId ? 'selected' : ''}>${esc(x.name)}${x.callSign ? ' · ' + esc(x.callSign) : ''}</option>`).join('')}</select></label>
-      <label>Task<input data-af="task" value="${esc(a.task)}" placeholder="e.g. hold the bight at B3"></label>
-      <label>Position<select data-af="mode"><option value="fixed" ${mode === 'fixed' ? 'selected' : ''}>Fixed</option><option value="flexible" ${mode === 'flexible' ? 'selected' : ''}>Flexible</option></select></label>
-      <label>Working radius<div class="unit-wrap"><input data-af="radius" type="number" min="0" step="10" value="${esc(a.radius)}" ${mode === 'fixed' ? 'disabled' : ''}><i>m</i></div></label>
-      <label>Tow from bridle<select data-af="bridle">${brOpts(+a.bridle)}</select></label>
-      <div class="row" style="padding-bottom:2px"><span class="pos">${a.x != null ? '<b>Placed</b>' : 'Not placed'}</span>
-        <button class="btn sm" data-aact="place" ${v ? '' : 'disabled'}>${a.x != null ? 'Move' : 'Place'}</button>
-        <button class="btn sm danger" data-aact="del">✕</button></div>
     </div>`;
   }).join('');
 }
@@ -1790,6 +2226,9 @@ function sheetPagesFor(p) {
     </div>
     <table class="sh-secs"><thead><tr><th>Section</th><th>Cable marks</th><th>Float every</th><th>Floats</th><th>Tails / float</th><th>Tail spec</th><th>Why</th></tr></thead>
       <tbody>${secRows}${r.secs.length > 1 ? `<tr class="tot"><td>Total</td><td>${fmtM(r.so)} → ${fmtM(r.so + r.Lf)} m</td><td></td><td>${fmtInt(r.n)}</td><td>${fmtInt(r.tails)}</td><td colspan="2"></td></tr>` : ''}</tbody></table>
+    ${r.lights.length ? `<table class="sh-lights"><thead><tr><th>Light</th><th>Character</th><th>Range</th><th>Fitted on</th><th>Number</th></tr></thead><tbody>
+      ${r.lights.map(l => `<tr><td><span class="lc" style="background:${l.colour}"></span><b>${esc(l.L.name)}</b></td><td><b>${esc(l.L.character)}</b></td><td>${fmt(num(l.L.range), 1)} nm</td>
+        <td>${l.L.at === 'floats' ? `a float every ${fmtM(num(l.L.every))} m` : l.L.at === 'ends' ? 'first and last float' : l.L.at === 'sections' ? 'first float of each section + last float' : 'every bridle'}</td><td><b>${fmtInt(l.marks.length)}</b></td></tr>`).join('')}</tbody></table>` : ''}
     <div class="sh-items">
       <div class="sh-item">${ph(f.image, floatIconSVG(f))}<div><h5>Float — same type throughout</h5><div class="nm">${esc(f.name)}</div>
         <div class="ln"><span class="sw" style="background:${safeColour(f.colour)}"></span>${f.shape === 'round' ? 'Round' : 'Rectangular'} · ${fmt(num(f.length), 2)} × ${fmt(num(f.dia), 2)} m</div>
@@ -1805,6 +2244,13 @@ function sheetPagesFor(p) {
     <div class="sh-box" style="flex:none"><h5>Whole cable — first end on the left${r.b ? ' · ◆ = bridle' : ''}</h5><div class="in" style="padding:1mm 2mm">${overviewSVG(p, r, PAL_PRINT)}</div></div>
     ${p.remarks ? `<div class="sh-note"><b>Remarks:</b> ${esc(p.remarks)}</div>` : ''}`);
 
+  const at = p.attach;
+  if (at.text || at.ref || at.images.length) {
+    const imgs = at.images, chunks = imgs.length ? Array.from({ length: Math.ceil(imgs.length / 4) }, (_, i) => imgs.slice(i * 4, i * 4 + 4)) : [[]];
+    chunks.forEach((ch, ci) => pages.push(`${head('Float attachment detail' + (chunks.length > 1 ? ` (${ci + 1}/${chunks.length})` : ''))}
+      ${ci === 0 && (at.ref || at.text) ? `<div class="sh-note" style="margin:0 0 3mm;border-style:solid;font-size:10.5pt">${at.ref ? `<b>Reference:</b> ${esc(at.ref)}<br>` : ''}<span style="white-space:pre-line">${esc(at.text)}</span></div>` : ''}
+      ${ch.length ? `<div class="sh-att" style="${ch.length <= 2 ? 'grid-template-columns:repeat(' + ch.length + ',1fr)' : ''}">${ch.map(im => `<figure><img src="${safeImg(im.img)}" alt="">${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}`));
+  }
   for (let i = 0; i < r.secs.length; i += 2) {
     const views = r.secs.slice(i, i + 2).map(s => `<div class="sh-diagram"><h5>Side view — ${esc(s.name)} · float every ${fmt(s.X, 2)} m · ${s.tailsPer} tail${s.tailsPer === 1 ? '' : 's'} per float${s.s.tailSpec ? ` (${esc(s.s.tailSpec)})` : ''} · marks ${fmtM(s.from)}–${fmtM(s.to)} m</h5><div class="svg">${elevationSVG(p, r, s.i, PAL_PRINT)}</div></div>`).join('');
     pages.push(`${head('Side views — float size and spacing to scale')}<div class="sh-views" style="${r.secs.length - i === 1 ? 'grid-template-rows:1fr' : ''}">${views}</div>`);
@@ -1815,6 +2261,7 @@ function sheetPagesFor(p) {
       ${r.secs.map(s => `<tr><td>${esc(s.name)} — ${fmt(s.W, 1)} kg/m @ ${fmt(s.X, 2)} m</td><td>${fmt(s.load, 0)} kg · ${fmt(s.util * 100, 0)}% (1 lost: ${fmt(s.utilN1 * 100, 0)}%)</td></tr>`).join('')}
       <tr><td>Total lift ÷ cable weight</td><td>× ${fmt(r.reserve, 2)}</td></tr>
       ${r.route ? `<tr><td>Route length / floated cable</td><td>${fmtM(Math.round(r.route.length))} / ${fmtM(r.Lf)} m</td></tr>` : ''}
+      ${hasGeo(p.route.geo) ? `<tr><td>Route start (first float)</td><td>${fmtLatLon(p.route.geo.lat, p.route.geo.lon)}</td></tr>` : ''}
     </table>`;
   const notes = r.msgs.filter(m => m.level !== 'good').map(m => `<li>${esc(m.text)}</li>`).join('');
   pages.push(`${head('Layout & engineering check')}
@@ -1832,9 +2279,10 @@ function vesselTableHTML(p, r) {
   if (!rows.length) return '';
   return `<div style="font-size:8pt;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:3mm">Support vessels</div>
     <table class="sh-ves"><tr><th>Vessel</th><th>Call sign</th><th>Type / power</th><th>Position</th><th>Task</th></tr>
-    ${rows.map(({ a, v }) => { const mode = a.mode || v.mode; const br = r.bridles[a.bridle];
+    ${rows.map(({ a, v }) => { const mode = a.mode;
+      const ps = vesselPose(a, r), g = p.route.geo, ll = ps && hasGeo(g) ? `<br>${fmtLatLon(...worldToGeo(ps.x, ps.y, g))}` : '';
       return `<tr><td><b>${esc(v.name)}</b></td><td>${esc(v.callSign || '—')}</td><td>${esc(v.type)} · ${fmtM(num(v.power))} ${esc(v.powerUnit)}</td>
-        <td>${mode === 'fixed' ? 'Fixed' : `Flexible ±${fmtM(num(a.radius))} m`}${br ? ` · tows B${a.bridle + 1} (${fmtM(br.mark)} m)` : ''}</td><td>${esc(a.task || '')}</td></tr>`; }).join('')}</table>`;
+        <td>${mode === 'fixed' ? `Fixed, hold ${String(Math.round(((num(a.heading) % 360) + 360) % 360)).padStart(3, '0')}°` : `Flexible ±${fmtM(num(a.radius))} m`}${a.link !== 'none' ? ` · ${esc(linkLabel(a, r))}, ${fmtM(num(a.dist))} m off ${a.conn}` : ''}${ll}</td><td>${esc(a.task || '')}</td></tr>`; }).join('')}</table>`;
 }
 function renderSheet() {
   const plans = $('#sheetScope').value === 'all' ? S.plans : [activePlan()];
@@ -1880,6 +2328,12 @@ function init() {
       save(); updatePlannerOutputs(); return;
     }
     const el = e.target.closest('[data-path]'); if (!el) return;
+    if (el.value === '__new' && (el.id === 'floatSelect' || el.id === 'bridleSelect')) {
+      const kind = el.id === 'floatSelect' ? 'float' : 'bridle', key = kind + 'Id', pl = activePlan();
+      el.value = getPath(pl, key) || '';
+      openEditor(kind, null, nid => { pl[key] = nid; });
+      return;
+    }
     const p = activePlan(), v = el.hasAttribute('data-num') ? (el.value === '' ? '' : num(el.value)) : el.value;
     setPath(p, el.dataset.path, v);
     if (el.dataset.path === 'name') renderPlanSelect();
@@ -1907,24 +2361,75 @@ function init() {
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && RT.placing) { RT.placing = null; renderRoute(); } });
   $('#btnAddVessel').onclick = () => openEditor('vessel');
   $('#vesselList').onclick = e => { const b = e.target.closest('[data-act]'); if (b) libraryAction('vessel', b.dataset.act, b.dataset.id); };
-  $('#btnAssignVessel').onclick = () => {
-    const p = activePlan(), v = S.vessels[0];
-    if (!v) { toast('Add a vessel to the library first'); openEditor('vessel'); return; }
-    p.vessels.push(defaultAssign({ vesselId: v.id, mode: v.mode })); save(); renderAssignments();
-  };
-  $('#assignList').addEventListener('input', e => {
-    const row = e.target.closest('[data-aid]'), k = e.target.dataset.af; if (!row || !k) return;
-    const a = activePlan().vessels.find(x => x.id === row.dataset.aid); if (!a) return;
-    a[k] = ['radius', 'bridle'].includes(k) ? num(e.target.value) : e.target.value;
-    if (k === 'vesselId') a.mode = vesselById(a.vesselId)?.mode || a.mode;
-    save(); if (k !== 'task') renderAssignments();
-  });
-  $('#assignList').addEventListener('click', e => {
-    const b = e.target.closest('[data-aact]'); if (!b) return;
+  $('#btnAddPlanVessel').onclick = () => openVesselDialog(null);
+  $('#planVessels').addEventListener('click', e => {
+    const b = e.target.closest('[data-vact]'); if (!b) return;
     const p = activePlan(), id = b.closest('[data-aid]').dataset.aid;
-    if (b.dataset.aact === 'del') { p.vessels = p.vessels.filter(a => a.id !== id); save(); renderAssignments(); }
-    else startPlacing(id);
+    if (b.dataset.vact === 'edit') openVesselDialog(id);
+    else if (b.dataset.vact === 'del') { if (confirm('Remove this vessel from the plan?')) { p.vessels = p.vessels.filter(a => a.id !== id); save(); renderPlanVessels(); } }
+    else { const a = p.vessels.find(x => x.id === id); if (a && !vesselPose(a, calc(p))) startPlacing(id); else showTab('route'); }
   });
+  $('#routeVessels').addEventListener('click', e => { const b = e.target.closest('[data-vedit]'); if (b) openVesselDialog(b.dataset.vedit); });
+  $('#btnEditFloat').onclick = () => { const p = activePlan(); if (floatById(p.floatId)) openEditor('float', p.floatId); };
+  $('#btnEditBridle').onclick = () => { const p = activePlan(); if (bridleById(p.bridleId)) openEditor('bridle', p.bridleId); };
+  $('#btnAddLight').onclick = () => {
+    const p = activePlan(), hasB = bridleById(p.bridleId) && !p.lights.some(l => l.at === 'bridles');
+    p.lights.push(defaultLight(p.lights.length && hasB ? { at: 'bridles', name: 'Bridle light', character: 'Fl Y 2.5s' } : {}));
+    save(); renderLights(); updatePlannerOutputs();
+  };
+  $('#lightList').addEventListener('input', e => {
+    const row = e.target.closest('[data-li]'), k = e.target.dataset.lk; if (!row || !k) return;
+    const L = activePlan().lights[+row.dataset.li];
+    L[k] = ['range', 'every'].includes(k) ? num(e.target.value) : e.target.value;
+    save(); if (k === 'at') renderLights(); updatePlannerOutputs();
+  });
+  $('#lightList').addEventListener('click', e => { const b = e.target.closest('[data-lact]'); if (!b) return; activePlan().lights.splice(+b.closest('[data-li]').dataset.li, 1); save(); renderLights(); updatePlannerOutputs(); });
+  $('#attachFile').onchange = async e => {
+    const p = activePlan();
+    for (const f of e.target.files) { try { p.attach.images.push({ img: (await readImage(f, 1400, 0.82)).data, caption: '' }); } catch { toast('Could not read ' + f.name); } }
+    e.target.value = ''; save(); renderAttach();
+  };
+  $('#attachImages').addEventListener('input', e => { const fig = e.target.closest('[data-ai]'); if (fig && e.target.hasAttribute('data-ac')) { activePlan().attach.images[+fig.dataset.ai].caption = e.target.value; save(); } });
+  $('#attachImages').addEventListener('click', e => { const fig = e.target.closest('[data-ai]'); if (fig && e.target.closest('[data-aidel]')) { activePlan().attach.images.splice(+fig.dataset.ai, 1); save(); renderAttach(); } });
+  // geo
+  $('#geoSet').onclick = () => {
+    const la = parseCoord($('#geoLat').value, true), lo = parseCoord($('#geoLon').value, false);
+    if (!Number.isFinite(la) || !Number.isFinite(lo)) return toast('Could not read that position — try 57 16.5 N / 005 43.2 W or decimals');
+    setGeoPosition(la, lo);
+  };
+  $('#geoClear').onclick = () => { const g = activePlan().route.geo; g.lat = g.lon = null; commitRoute(); };
+  $('#geoFind').onclick = async () => {
+    const q = $('#geoSearch').value.trim(); if (!q) return;
+    $('#geoResults').innerHTML = '<div class="small muted">Searching…</div>';
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
+      const list = await res.json();
+      $('#geoResults').innerHTML = list.length ? list.map(x => `<button data-lat="${+x.lat}" data-lon="${+x.lon}">${esc(x.display_name)}</button>`).join('') : '<div class="small muted">Nothing found.</div>';
+    } catch { $('#geoResults').innerHTML = '<div class="small muted">Search needs an internet connection. You can type the position instead.</div>'; }
+  };
+  $('#geoSearch').addEventListener('keydown', e => { if (e.key === 'Enter') $('#geoFind').click(); });
+  $('#geoResults').addEventListener('click', e => { const b = e.target.closest('[data-lat]'); if (!b) return; $('#geoResults').innerHTML = ''; setGeoPosition(+b.dataset.lat, +b.dataset.lon); });
+  $('#geoBase').onchange = e => { activePlan().route.geo.base = e.target.value; commitRoute(); };
+  $('#geoSea').onchange = e => { activePlan().route.geo.seamarks = e.target.checked; commitRoute(); };
+  $('#geoOpacity').oninput = e => { activePlan().route.geo.opacity = num(e.target.value, 1); save(); scheduleRoute(); };
+  $('#ovFile').onchange = e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => { try { const ov = parseOverlay(fr.result, f.name); if (!ov.length) return toast('No lines, areas or points found in that file');
+      activePlan().route.geo.overlay = ov; commitRoute(); toast(`Loaded ${ov.length} chart feature${ov.length > 1 ? 's' : ''}`); } catch { toast('Could not read that file — use GeoJSON or KML'); } };
+    fr.readAsText(f);
+  };
+  $('#ovRemove').onclick = () => { activePlan().route.geo.overlay = null; commitRoute(); };
+  $('#expCsv').onclick = exportPositionsCSV;
+  $('#expGeo').onclick = exportGeoJSON;
+  $('#bgPin').onclick = () => {
+    const p = activePlan(), g = p.route.geo, bg = p.route.bg; if (!bg || !hasGeo(g)) return;
+    const v = ['#bgTLlat', '#bgTLlon', '#bgBRlat', '#bgBRlon'].map((id, i) => parseCoord($(id).value, i % 2 === 0));
+    if (v.some(x => !Number.isFinite(x))) return toast('Enter all four corner coordinates');
+    const tl = geoToWorld(v[0], v[1], g), br = geoToWorld(v[2], v[3], g);
+    Object.assign(bg, { x: Math.round(tl[0]), y: Math.round(tl[1]), widthM: Math.round(br[0] - tl[0]), heightM: Math.round(br[1] - tl[1]) });
+    RT.view = null; renderRoute(); commitRoute(); toast('Image pinned to its corners');
+  };
   $('#btnAddFloat').onclick = () => openEditor('float');
   $('#btnAddBridle').onclick = () => openEditor('bridle');
   $('#floatList').onclick = e => { const b = e.target.closest('[data-act]'); if (b) libraryAction('float', b.dataset.act, b.dataset.id); };
